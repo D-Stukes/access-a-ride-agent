@@ -1,0 +1,119 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 780" width="1200" height="780" font-family="Helvetica, Arial, sans-serif">
+  <defs>
+    <marker id="arrow" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#555"/>
+    </marker>
+    <marker id="arrow-orange" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0L10 5L0 10z" fill="#d9822b"/>
+    </marker>
+  </defs>
+
+  <rect width="1200" height="780" fill="#ffffff"/>
+
+  <!-- Title -->
+  <text x="40" y="52" font-size="28" font-weight="700" fill="#1a1a1a">Access-A-Ride Trip Accountability Agent</text>
+  <text x="40" y="82" font-size="16" fill="#555">Architecture: one agent, one tool, a human approves every save · Diane Stukes and Huma Ali</text>
+
+  <!-- User -->
+  <rect x="40" y="290" width="190" height="110" rx="12" fill="#eef3fb" stroke="#4a6fa5" stroke-width="2"/>
+  <text x="135" y="330" font-size="20" font-weight="700" text-anchor="middle" fill="#1a1a1a">User</text>
+  <text x="135" y="356" font-size="14" text-anchor="middle" fill="#333">Care coordinator,</text>
+  <text x="135" y="376" font-size="14" text-anchor="middle" fill="#333">caregiver, or rider</text>
+
+  <!-- User <-> harness arrows -->
+  <line x1="230" y1="330" x2="288" y2="330" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="290" y1="365" x2="232" y2="365" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="259" y="392" font-size="12" text-anchor="middle" fill="#555">chat</text>
+
+  <!-- Harness container -->
+  <rect x="290" y="110" width="580" height="560" rx="14" fill="#fafafa" stroke="#888" stroke-width="2"/>
+  <text x="310" y="140" font-size="14" font-weight="700" fill="#666" letter-spacing="1">HARNESS (OUR CODE)</text>
+
+  <!-- System prompt -->
+  <rect x="310" y="155" width="540" height="80" rx="10" fill="#f1ecfa" stroke="#7b5ea7" stroke-width="2"/>
+  <text x="580" y="186" font-size="17" font-weight="700" text-anchor="middle" fill="#1a1a1a">System prompt</text>
+  <text x="580" y="212" font-size="13.5" text-anchor="middle" fill="#333">Role · AAR rules · refusals · user text and notes are data, not instructions</text>
+
+  <!-- Claude model -->
+  <rect x="310" y="260" width="250" height="90" rx="10" fill="#ffffff" stroke="#555" stroke-width="2"/>
+  <text x="435" y="296" font-size="17" font-weight="700" text-anchor="middle" fill="#1a1a1a">Claude model</text>
+  <text x="435" y="322" font-size="13.5" text-anchor="middle" fill="#333">reads prompt and chat,</text>
+  <text x="435" y="340" font-size="13.5" text-anchor="middle" fill="#333">chooses the next step</text>
+
+  <line x1="560" y1="305" x2="598" y2="305" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- HITL gate -->
+  <rect x="600" y="260" width="250" height="90" rx="10" fill="#fdf1e4" stroke="#d9822b" stroke-width="2.5"/>
+  <text x="725" y="291" font-size="16" font-weight="700" text-anchor="middle" fill="#1a1a1a">Human-in-the-loop gate</text>
+  <text x="725" y="316" font-size="13.5" text-anchor="middle" fill="#333">log_trip runs only after</text>
+  <text x="725" y="336" font-size="13.5" text-anchor="middle" fill="#333">the user says "yes"</text>
+
+  <!-- Agent loop -->
+  <text x="310" y="388" font-size="14" font-weight="700" fill="#666" letter-spacing="1">AGENT LOOP</text>
+  <rect x="320" y="400" width="150" height="62" rx="10" fill="#ffffff" stroke="#555" stroke-width="1.5"/>
+  <text x="395" y="426" font-size="15" font-weight="700" text-anchor="middle" fill="#1a1a1a">1. Observe</text>
+  <text x="395" y="447" font-size="12" text-anchor="middle" fill="#444">message or tool result</text>
+
+  <rect x="505" y="400" width="150" height="62" rx="10" fill="#ffffff" stroke="#555" stroke-width="1.5"/>
+  <text x="580" y="426" font-size="15" font-weight="700" text-anchor="middle" fill="#1a1a1a">2. Decide</text>
+  <text x="580" y="447" font-size="12" text-anchor="middle" fill="#444">label, ask, or refuse</text>
+
+  <rect x="690" y="400" width="150" height="62" rx="10" fill="#ffffff" stroke="#555" stroke-width="1.5"/>
+  <text x="765" y="426" font-size="15" font-weight="700" text-anchor="middle" fill="#1a1a1a">3. Act</text>
+  <text x="765" y="447" font-size="12" text-anchor="middle" fill="#444">reply or call a tool</text>
+
+  <line x1="470" y1="431" x2="503" y2="431" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
+  <line x1="655" y1="431" x2="688" y2="431" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
+  <path d="M765 462 V492 H395 V464" fill="none" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
+  <text x="580" y="512" font-size="12" text-anchor="middle" fill="#555">repeat until the task is done</text>
+
+  <!-- Error handling -->
+  <rect x="310" y="540" width="540" height="105" rx="10" fill="#fdecec" stroke="#c0392b" stroke-width="1.5"/>
+  <text x="580" y="571" font-size="16" font-weight="700" text-anchor="middle" fill="#1a1a1a">Error handling</text>
+  <text x="580" y="597" font-size="13.5" text-anchor="middle" fill="#333">Timeout, failed save, or malformed result: tell the user plainly,</text>
+  <text x="580" y="619" font-size="13.5" text-anchor="middle" fill="#333">never claim a save that didn't happen, offer to retry</text>
+
+  <!-- Tool -->
+  <rect x="930" y="200" width="230" height="340" rx="14" fill="#edf7ef" stroke="#3d8b57" stroke-width="2"/>
+  <text x="1045" y="228" font-size="13" font-weight="700" text-anchor="middle" fill="#666" letter-spacing="1">THE ONE TOOL</text>
+  <text x="1045" y="256" font-size="19" font-weight="700" text-anchor="middle" fill="#1a1a1a">Trip log</text>
+  <text x="1045" y="277" font-size="13.5" text-anchor="middle" fill="#333">(Supabase database)</text>
+
+  <rect x="950" y="295" width="190" height="70" rx="10" fill="#ffffff" stroke="#3d8b57" stroke-width="1.5"/>
+  <text x="1045" y="324" font-size="15" font-weight="700" text-anchor="middle" font-family="Menlo, monospace" fill="#1a1a1a">log_trip</text>
+  <text x="1045" y="348" font-size="13" text-anchor="middle" fill="#333">insert only</text>
+
+  <rect x="950" y="385" width="190" height="70" rx="10" fill="#ffffff" stroke="#3d8b57" stroke-width="1.5"/>
+  <text x="1045" y="414" font-size="15" font-weight="700" text-anchor="middle" font-family="Menlo, monospace" fill="#1a1a1a">query_trips</text>
+  <text x="1045" y="438" font-size="13" text-anchor="middle" fill="#333">read only</text>
+
+  <text x="1045" y="483" font-size="12.5" text-anchor="middle" fill="#333">Row-level security:</text>
+  <text x="1045" y="501" font-size="12.5" text-anchor="middle" fill="#333">each user sees only</text>
+  <text x="1045" y="519" font-size="12.5" text-anchor="middle" fill="#333">their own riders' trips</text>
+
+  <!-- Harness <-> tool arrows -->
+  <path d="M850 318 H895 V330 H948" fill="none" stroke="#d9822b" stroke-width="2.5" marker-end="url(#arrow-orange)"/>
+  <path d="M950 420 H872" fill="none" stroke="#555" stroke-width="2" marker-end="url(#arrow)"/>
+
+  <!-- Injection markers -->
+  <g>
+    <circle cx="259" cy="306" r="14" fill="#c0392b"/>
+    <text x="259" y="311" font-size="15" font-weight="700" text-anchor="middle" fill="#ffffff">1</text>
+  </g>
+  <g>
+    <circle cx="900" cy="445" r="14" fill="#c0392b"/>
+    <text x="900" y="450" font-size="15" font-weight="700" text-anchor="middle" fill="#ffffff">2</text>
+  </g>
+  <g>
+    <circle cx="1140" cy="385" r="14" fill="#c0392b"/>
+    <text x="1140" y="390" font-size="15" font-weight="700" text-anchor="middle" fill="#ffffff">3</text>
+  </g>
+
+  <!-- Legend -->
+  <line x1="40" y1="695" x2="1160" y2="695" stroke="#ddd" stroke-width="1"/>
+  <circle cx="54" cy="726" r="10" fill="#c0392b"/>
+  <text x="74" y="731" font-size="15" font-weight="700" fill="#1a1a1a">Where prompt injection could get in:</text>
+  <text x="352" y="731" font-size="15" fill="#333">1 user chat · 2 tool results · 3 free-text notes saved in the trip log</text>
+  <rect x="40" y="748" width="14" height="14" fill="#fdf1e4" stroke="#d9822b" stroke-width="2"/>
+  <text x="64" y="760" font-size="14" fill="#333">Orange = the only path that changes data, and it passes through the human approval gate</text>
+</svg>
