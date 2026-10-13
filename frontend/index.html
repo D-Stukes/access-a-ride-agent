@@ -983,6 +983,44 @@
     .pb-num{min-width:80px;font-size:24px}
     .hero .w-title .w-name{font-size:40px}
   }
+  /* ---------- pain points on The Problem scene ---------- */
+  #home .problem-scene{align-items:start}
+  #home .pb-inner{margin-top:clamp(8px,3vh,36px)}
+  .pb-title{margin:10px 0 14px}
+  .pb-story{margin-bottom:14px}
+  .pb-pain{margin:0 0 16px;max-width:820px;background:rgba(8,14,26,.52);border:1px solid rgba(255,255,255,.24);border-radius:16px;
+    padding:12px 22px 14px;-webkit-backdrop-filter:blur(5px);backdrop-filter:blur(5px);box-shadow:0 18px 40px rgba(0,0,0,.4)}
+  .pb-pain-title{margin:0 0 6px;font-size:17px;font-weight:700;color:#FFE08A;text-shadow:0 2px 6px rgba(0,0,0,.8)}
+  .pb-pain ul{margin:0;padding:0;list-style:none;display:grid;gap:4px}
+  .pb-pain li{position:relative;padding-left:20px;font-size:clamp(15px,1.35vw,17px);line-height:1.4;color:#F2F5FA;text-shadow:0 2px 6px rgba(0,0,0,.85)}
+  .pb-pain li::before{content:"";position:absolute;left:2px;top:.55em;width:9px;height:9px;border-radius:50%;background:#F2B705}
+  .pb-card{padding:14px 18px}
+  .pb-num{font-size:clamp(32px,3.4vw,46px)}
+  @media (max-width: 700px){
+    .pb-pain{padding:10px 14px 12px;margin-bottom:12px}
+    .pb-pain-title{font-size:15px}
+    .pb-pain li{font-size:14px;padding-left:18px}
+    .pb-num{font-size:28px}
+    #home .pb-inner{margin-top:0}
+  }
+  .pb-pain li::before{top:.5em;transform:translateY(-15%)}
+  @media (min-width: 701px) and (max-height: 780px){
+    #home .pb-inner{margin-top:0}
+    .pb-title{font-size:clamp(30px,3.6vw,46px);margin:8px 0 10px}
+    .pb-story{font-size:17px;padding:12px 18px;margin-bottom:10px}
+    .pb-pain{padding:10px 18px 12px;margin-bottom:10px}
+    .pb-pain li{font-size:15px}
+    .pb-card{padding:12px 16px}
+    .pb-num{font-size:34px}
+    .pb-card p{font-size:14.5px;margin-top:6px}
+    .pb-source{margin-top:8px}
+  }
+  /* pain points: bigger heading, bullets match the story text size */
+  .pb-pain-title{font-size:24px;margin-bottom:8px}
+  .pb-pain li{font-size:clamp(17px,1.6vw,21px);line-height:1.45;padding-left:22px}
+  .pb-pain li::before{width:10px;height:10px;top:.62em;transform:none}
+  @media (min-width: 701px) and (max-height: 780px){ .pb-pain-title{font-size:21px} .pb-pain li{font-size:17px} }
+  @media (max-width: 700px){ .pb-pain-title{font-size:19px} .pb-pain li{font-size:15px;padding-left:18px} }
 </style>
 </head>
 <body>
@@ -1027,6 +1065,14 @@
       <span class="pb-eyebrow">The problem</span>
       <h2 class="pb-title">Missed pickups go unrecorded</h2>
       <p class="pb-story">Imagine you're 82, you use a walker, and you have a dialysis appointment at ten. Your van is scheduled for 9:15. It shows up at 9:50, the driver doesn't come to the door, and leaves two minutes later. You're marked a no-show.</p>
+      <div class="pb-pain">
+        <h3 class="pb-pain-title">3 Pain Points</h3>
+        <ul>
+          <li>Driver comes late or doesn't show up</li>
+          <li>Driver does not perform call out and assist</li>
+          <li>Driver leaves early, causing the patient to be stranded and listed as a&nbsp;&ldquo;No&nbsp;Show&rdquo;</li>
+        </ul>
+      </div>
       <div class="pb-stats">
         <div class="pb-card"><div class="pb-num">72,823</div><p>complaints logged by NYC paratransit from September 2025 to August 2026</p></div>
         <div class="pb-card"><div class="pb-num">20,315</div><p>were &ldquo;Service &ndash; No Shows,&rdquo; the largest category (28%)</p></div>
