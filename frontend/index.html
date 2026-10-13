@@ -941,6 +941,48 @@
   .pb-num{text-shadow:0 3px 12px rgba(0,0,0,.7)}
   .pb-title{text-shadow:0 3px 8px rgba(0,0,0,.75),0 0 30px rgba(0,0,0,.5)}
   .pb-source{text-shadow:0 1px 4px rgba(0,0,0,.9),0 0 12px rgba(0,0,0,.6)}
+
+  /* =====================================================================
+     PHONES (iPhone / Android, up to 700px wide).
+     Everything below only applies to small screens; the desktop view is unchanged.
+     ===================================================================== */
+  @media (max-width: 700px){
+    /* top strip: one short line */
+    .topbar{font-size:12px}
+    .topbar .wrap{padding:5px 16px;justify-content:center}
+    .topbar .wrap > span:first-child{display:none}
+
+    /* The Problem: tighter so it fits on a phone screen */
+    #home.scene-problem .problem-scene{padding:calc(var(--nav-h) + 14px) 16px 28px}
+    .pb-eyebrow{font-size:12px;padding:5px 12px}
+    .pb-title{font-size:30px;margin:10px 0 12px}
+    .pb-story{font-size:15px;line-height:1.45;padding:12px 14px;margin-bottom:14px;border-left-width:4px}
+    .pb-stats{gap:10px}
+    .pb-card{display:flex;align-items:center;gap:14px;padding:12px 14px;border-radius:16px}
+    .pb-num{flex:0 0 auto;min-width:92px;font-size:28px}
+    .pb-card p{margin:0;font-size:14px}
+    .pb-source{font-size:11.5px;margin-top:10px}
+
+    /* Welcome to Ride Assure: the title phone fits the screen width */
+    .welcome-phone{width:min(330px,100%)}
+    #home .w-screen{height:max(520px,min(620px,calc(100svh - var(--nav-h) - 60px)))}
+    #home #welcomeGrid{gap:14px}
+    #home .ra-piece{padding:16px}
+
+    /* Try It: no fly-off header gap, phone stays centered */
+    #demos{padding:12px 8px 20px}
+    #demos .demo-head h2{font-size:24px}
+    #demos .demo-head .lead{font-size:15px}
+
+    /* Team and footer */
+    #team h2{font-size:28px}
+    footer .wrap{padding:20px 16px;font-size:13px}
+  }
+  @media (max-width: 380px){
+    .pb-title{font-size:26px}
+    .pb-num{min-width:80px;font-size:24px}
+    .hero .w-title .w-name{font-size:40px}
+  }
 </style>
 </head>
 <body>
