@@ -1,0 +1,165 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>AAR Video Flow</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#4471c6;
+    --muted:#C9D2E3;
+    --ground:#5587e4;
+    --accent:#F2B705;
+    --scrim:rgba(8,14,26,0.55);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%;background:var(--ground);color:var(--ink);
+    font-family:'Atkinson Hyperlegible',system-ui,sans-serif}
+
+  /* ---------- the video flow ---------- */
+  .flow{position:fixed;inset:0;overflow:hidden;background:var(--ground)}
+  .strip{
+    position:absolute;top:0;left:0;height:100%;
+    display:flex;gap:6px;
+    animation:drift var(--dur,90s) ease-in-out infinite alternate;
+    will-change:transform;
+  }
+  .flow.paused .strip{animation-play-state:paused}
+  @keyframes drift{from{transform:translateX(0)}to{transform:translateX(calc(-1 * var(--travel,0px)))}}
+
+  .tile{position:relative;height:100%;flex:0 0 auto;overflow:hidden;background:#000}
+  .tile.wide{aspect-ratio:16/9}
+  .tile.tall{aspect-ratio:9/16}
+  /* scale the player a little so YouTube's title bar and corners stay out of view */
+  .tile iframe{position:absolute;top:50%;left:50%;width:100%;height:100%;
+    transform:translate(-50%,-50%) scale(1.18);border:0;pointer-events:none}
+
+  .scrim{position:fixed;inset:0;background:var(--scrim);pointer-events:none}
+
+  /* ---------- space reserved for the future nav bar ---------- */
+  .nav-slot{position:fixed;top:0;left:0;right:0;height:72px;
+    display:flex;align-items:center;padding:0 24px;
+    border-bottom:1px dashed rgba(255,255,255,.25);
+    color:var(--muted);font-size:14px;letter-spacing:.08em;text-transform:uppercase}
+
+  /* ---------- centered message ---------- */
+  .hero{position:fixed;inset:72px 0 0 0;display:grid;place-items:center;padding:24px;text-align:center}
+  .hero h1{margin:0 0 12px;font-family:'Space Grotesk',sans-serif;font-weight:700;
+    font-size:clamp(36px,6vw,76px);line-height:1.02;text-shadow:0 2px 24px rgba(0,0,0,.5)}
+  .hero p{margin:0 auto;max-width:640px;font-size:clamp(17px,2vw,21px);line-height:1.5;color:#E6EAF2;
+    text-shadow:0 1px 12px rgba(0,0,0,.6)}
+
+  /* ---------- pause control (required for moving media) ---------- */
+  .pause{position:fixed;right:24px;bottom:24px;z-index:5;
+    display:flex;align-items:center;gap:8px;min-height:48px;padding:0 20px;
+    border:0;border-radius:999px;background:#FFFFFF;color:#0A111E;
+    font:inherit;font-weight:700;font-size:16px;cursor:pointer;
+    box-shadow:0 4px 20px rgba(0,0,0,.35)}
+  .pause:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+  .pause svg{width:16px;height:16px}
+
+  .credit{position:fixed;left:24px;bottom:24px;font-size:13px;color:var(--muted);
+    text-shadow:0 1px 8px rgba(0,0,0,.7)}
+</style>
+</head>
+<body>
+
+<div class="flow" id="flow" aria-hidden="true">
+  <div class="strip" id="strip"></div>
+</div>
+<div class="scrim"></div>
+
+<div class="nav-slot">Navigation bar goes here</div>
+
+<main class="hero">
+  <div>
+    <!-- <h1>Every Access-A-Ride pickup,<br>on the record.</h1>
+    <p>An AI agent that helps riders and caregivers log what happened on each trip and see which vendors fall short.</p>
+  </div> -->
+</main>
+
+<button class="pause" id="pause" type="button" aria-pressed="false">
+  <svg id="icon" viewBox="0 0 16 16" aria-hidden="true"><rect x="3" y="2" width="3.5" height="12" fill="currentColor"/><rect x="9.5" y="2" width="3.5" height="12" fill="currentColor"/></svg>
+  <span id="pauseText">Pause video</span>
+</button>
+
+<p class="credit">Videos play silently via YouTube</p>
+
+<script>
+  // ---- Your videos: add, remove or reorder here ----
+  // shape: "wide" for regular videos (16:9), "tall" for Shorts (9:16)
+  // start: optional number of seconds to skip at the beginning
+  const VIDEOS = [
+    { id: "iu2_7I9r5z8", shape: "wide", start: 29.8},
+    { id: "Hnbc_hW4zLU", shape: "tall" },
+    { id: "bwrJY90sgjc", shape: "wide" },
+    { id: "2gdEMfQ42vg", shape: "tall" },
+    { id: "39BZ2cfKgSM", shape: "tall" },
+    { id: "BWSCSdcqEeY", shape: "tall" }
+  ];
+
+  const strip = document.getElementById("strip");
+  const flow = document.getElementById("flow");
+  const origin = encodeURIComponent(location.origin && location.origin !== "null" ? location.origin : "");
+
+  VIDEOS.forEach(v => {
+    const tile = document.createElement("div");
+    tile.className = "tile " + v.shape;
+    const f = document.createElement("iframe");
+    // mute=1 keeps every video silent; loop + playlist=<same id> repeats it forever
+    f.src = "https://www.youtube-nocookie.com/embed/" + v.id +
+      "?autoplay=1&mute=1&loop=1&playlist=" + v.id +
+      (v.start ? "&start=" + v.start : "") +
+      "&controls=0&disablekb=1&playsinline=1&rel=0&modestbranding=1&iv_load_policy=3&enablejsapi=1" +
+      (origin ? "&origin=" + origin : "");
+    f.title = "Access-A-Ride video (muted)";
+    f.allow = "autoplay; encrypted-media; picture-in-picture";
+    f.tabIndex = -1;
+    tile.appendChild(f);
+    strip.appendChild(tile);
+  });
+
+  // How far the strip drifts: its full width minus the screen width
+  function measure(){
+    const travel = Math.max(0, strip.scrollWidth - window.innerWidth);
+    strip.style.setProperty("--travel", travel + "px");
+    strip.style.setProperty("--dur", Math.max(30, travel / 40) + "s"); // ~40px per second
+  }
+  window.addEventListener("resize", measure);
+  window.addEventListener("load", measure);
+  measure();
+
+  // ---- Pause / play: stops the drift AND every video ----
+  const btn = document.getElementById("pause");
+  const txt = document.getElementById("pauseText");
+  const icon = document.getElementById("icon");
+  const PAUSE_ICON = icon.innerHTML;
+  const PLAY_ICON = '<path d="M4 2l10 6-10 6z" fill="currentColor"/>';
+  let paused = false;
+
+  function tellVideos(func){
+    strip.querySelectorAll("iframe").forEach(f => {
+      try { f.contentWindow.postMessage(JSON.stringify({event:"command", func, args:[]}), "*"); } catch(e){}
+    });
+  }
+  function setPaused(p){
+    paused = p;
+    flow.classList.toggle("paused", p);
+    tellVideos(p ? "pauseVideo" : "playVideo");
+    btn.setAttribute("aria-pressed", String(p));
+    txt.textContent = p ? "Play video" : "Pause video";
+    icon.innerHTML = p ? PLAY_ICON : PAUSE_ICON;
+  }
+  btn.addEventListener("click", () => setPaused(!paused));
+
+  // Respect "reduce motion": start paused
+  try {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      setTimeout(() => setPaused(true), 1500);
+    }
+  } catch(e){}
+</script>
+</body>
+</html>
