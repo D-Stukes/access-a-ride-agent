@@ -1,0 +1,30 @@
+{
+  "_note": "Music for the 'While you wait' panel. Tracks came from Pixabay (judging by the file names); check each track's page for its license before any public release.",
+  "genres": [
+    {
+      "genre": "Jazz",
+      "tracks": [
+        { "title": "Jazz Rainy Lounge", "artist": "Alex Morgan", "file": "jazz-rainy-lounge.mp3", "seconds": 124 }
+      ]
+    },
+    {
+      "genre": "Gospel",
+      "tracks": [
+        { "title": "Walk in the Light", "artist": "jeremiah7", "file": "gospel-walk-in-the-light.mp3", "seconds": 83 }
+      ]
+    },
+    {
+      "genre": "Country",
+      "tracks": [
+        { "title": "Backroads", "artist": "Pixabay user 45451848", "file": "country-backroads.mp3", "seconds": 137 }
+      ]
+    },
+    {
+      "genre": "Soul",
+      "tracks": [
+        { "title": "RnB Soul Background", "artist": "Tunetank", "file": "soul-rnb-background.mp3", "seconds": 159 },
+        { "title": "Soul RnB Music", "artist": "Tunetank", "file": "soul-rnb-music.mp3", "seconds": 135 }
+      ]
+    }
+  ]
+}
