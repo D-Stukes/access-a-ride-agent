@@ -269,7 +269,8 @@
         if (ui.parentNode) ui.remove();
         btn.classList.remove("speaking");
         showAnswer(phone, a, key);
-        if (a.speak) speakAs(a.summary || [a.big, a.sub].join(" "), "agent");
+        const said = a.speak ? speakAs(a.summary || [a.big, a.sub].join(" "), "agent") : Promise.resolve();
+        if (a.wait) said.then(resumeWait);   // the countdown starts once the answer has been read
         run = null;
       }, 300);
     }
@@ -336,7 +337,11 @@
   const DEMO_MS_PER_MIN = 3000;   // demo clock: 1 minute of waiting goes by in 3 seconds
   function startWait(phone, etaMin) {
     stopWait();
-    wait = { phone, etaMin, t0: Date.now(), msPerMin: DEMO_MS_PER_MIN, base: 0, alerted5: etaMin <= 5, alertedBlock: false, timer: null, audio: null, wasPlaying: false };
+    wait = { phone, etaMin, t0: null, msPerMin: DEMO_MS_PER_MIN, base: 0, alerted5: etaMin <= 5, alertedBlock: false, timer: null, audio: null };
+  }
+  function resumeWait() {
+    if (!wait || wait.t0 !== null || wait.alertedBlock) return;
+    wait.t0 = Date.now();
     wait.timer = setInterval(tickWait, 500);
   }
   function stopWait() {
@@ -348,11 +353,13 @@
   }
   function remaining() {
     if (!wait) return 0;
-    return Math.max(0, wait.etaMin - wait.base - (Date.now() - wait.t0) / wait.msPerMin);
+    const ran = wait.t0 === null ? 0 : (Date.now() - wait.t0) / wait.msPerMin;
+    return Math.max(0, wait.etaMin - wait.base - ran);
   }
   function setSpeed(msPerMin) {
     if (!wait) return;
-    wait.base += (Date.now() - wait.t0) / wait.msPerMin; wait.t0 = Date.now(); wait.msPerMin = msPerMin;
+    if (wait.t0 !== null) { wait.base += (Date.now() - wait.t0) / wait.msPerMin; wait.t0 = Date.now(); }
+    wait.msPerMin = msPerMin;
     renderSpeed();
   }
   function minsText(r) { const m = Math.ceil(r); return r <= 1 ? "On your block" : m + " min"; }
@@ -375,6 +382,7 @@
     if (!wait) return;
     if (!wait.sheet) buildWait(phone);
     wait.sheet.hidden = false;
+    resumeWait();
     tickWait();
     wait.sheet.querySelector(".v2-x").focus();
   }
