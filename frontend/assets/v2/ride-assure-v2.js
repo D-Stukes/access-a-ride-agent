@@ -57,18 +57,31 @@
   }
   function hush() { try { window.speechSynthesis && speechSynthesis.cancel(); } catch (e) {} }
 
+  // Resolves { heard, error }. Interim results let a short "yes" count as soon as Chrome hears it.
   function listenOnce() {
     return new Promise((resolve) => {
-      if (!SR) return resolve(null);
-      let r; try { r = new SR(); } catch (e) { return resolve(null); }
-      r.lang = "en-US"; r.interimResults = false; r.maxAlternatives = 1;
-      let heard = null;
-      r.onresult = (e) => { heard = e.results[0][0].transcript; };
-      r.onend = () => resolve(heard);
-      r.onerror = () => {};
+      if (!SR) return resolve({ heard: null, error: "unsupported" });
+      let r; try { r = new SR(); } catch (e) { return resolve({ heard: null, error: "unsupported" }); }
+      r.lang = "en-US"; r.interimResults = true; r.maxAlternatives = 3;
+      let heard = null, error = null, over = false;
+      const end = () => { if (!over) { over = true; console.log("[RideAssure] mic end", { heard, error }); resolve({ heard, error }); } };
+      r.onstart = () => console.log("[RideAssure] mic listening");
+      r.onresult = (e) => {
+        const res = e.results[e.results.length - 1];
+        heard = [...res].map((a) => a.transcript).join(" ");
+        if (yesOrNo(heard)) { try { r.stop(); } catch (x) {} }
+      };
+      r.onerror = (e) => { error = e.error; console.log("[RideAssure] mic error", e.error); };
+      r.onend = end;
       if (run) run.rec = r;
-      try { r.start(); } catch (e) { resolve(null); }
+      try { r.start(); } catch (e) { error = "start-failed"; end(); }
     });
+  }
+  function micTrouble(error) {
+    if (error === "not-allowed" || error === "service-not-allowed") return "The microphone is blocked. Tap Yes or No.";
+    if (error === "audio-capture") return "I can't find a microphone. Tap Yes or No.";
+    if (error === "network") return "Voice needs the internet right now. Tap Yes or No.";
+    return "";
   }
   function yesOrNo(t) {
     const s = String(t || "").toLowerCase();
@@ -171,10 +184,12 @@
         await speakAs(ask, "agent");
         for (let i = 0; i < 3 && !done && alive(); i++) {
           q(".v2-heard").textContent = SR ? "Listening… say yes or no" : "";
-          const heard = await listenOnce();
+          const { heard, error } = await listenOnce();
           if (done || !alive()) return;
           const d = yesOrNo(heard);
-          q(".v2-heard").textContent = heard ? "Heard: “" + heard + "”" : "";
+          const trouble = micTrouble(error);
+          if (trouble) { q(".v2-heard").textContent = trouble; return; }
+          q(".v2-heard").textContent = heard ? "Heard: “" + heard + "”" : "I didn't hear anything. Say yes or no.";
           if (d) { if (d === "yes") unlockHold(me); return pick(d); }
         }
         if (!done) q(".v2-heard").textContent = "Tap Yes or No.";
