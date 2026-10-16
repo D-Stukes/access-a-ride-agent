@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Ride Assure · Call Demo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#4471c6; --accent:#F2B705; --navy:#0E1726; --navy-2:#16233A;
+    --page:#F4F6FA; --card:#FFFFFF; --text:#101828; --text-2:#475467; --line:#E4E7EC; --teal:#0B6770;
+    --agent:#4471c6; --agent-bg:#EAF0FB; --rep:#0B6770; --rep-bg:#E6F3F3; --rider-bg:#FFF6D6;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--page);color:var(--text);font-family:'Atkinson Hyperlegible',system-ui,sans-serif;font-size:18px;line-height:1.5}
+  h1,h2,h3{font-family:'Space Grotesk',sans-serif;line-height:1.15;margin:0}
+  button{font:inherit;cursor:pointer}
+  :focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+  [hidden]{display:none!important}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+
+  header{background:var(--navy);color:#fff;padding:12px 24px;display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  header img{height:40px;width:auto}
+  header .t b{font-family:'Space Grotesk',sans-serif;font-size:20px;display:block}
+  header .t span{font-size:14px;color:#C9D2E3}
+  .sim{margin-left:auto;background:rgba(242,183,5,.15);color:var(--accent);border:1px solid rgba(242,183,5,.5);border-radius:999px;padding:4px 12px;font-size:14px;font-weight:700}
+  .voice-toggle{background:transparent;border:1px solid #3a4a66;color:#fff;border-radius:999px;padding:6px 14px;font-size:15px}
+  .voice-toggle[aria-pressed="false"]{color:#C9D2E3}
+
+  main{display:grid;grid-template-columns:280px minmax(320px,400px) 1fr;gap:20px;padding:20px 24px;max-width:1400px;margin:0 auto;align-items:start}
+  @media (max-width:1100px){main{grid-template-columns:1fr 1fr}.rider-col{grid-column:1 / -1}}
+  @media (max-width:720px){main{grid-template-columns:1fr;padding:16px}}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;box-shadow:0 1px 2px rgba(16,24,40,.05)}
+  .card h2{font-size:18px;padding:16px 18px 0}
+  .kicker{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--text-2);padding:16px 18px 0}
+
+  /* rider picker */
+  .personas{display:flex;flex-direction:column;gap:8px;padding:12px 18px}
+  .persona{display:flex;gap:10px;align-items:center;text-align:left;background:var(--page);border:2px solid transparent;border-radius:14px;padding:10px 12px}
+  .persona[aria-checked="true"]{border-color:var(--ink);background:var(--agent-bg)}
+  .avatar{width:38px;height:38px;border-radius:50%;display:grid;place-items:center;font-weight:700;color:#fff;flex:none;font-size:15px}
+  .persona b{display:block}
+  .persona small{color:var(--text-2);font-size:14px}
+  .notes{margin:6px 18px 18px;padding:12px 14px;background:#FFFBEA;border:1px dashed #E8C85A;border-radius:12px;font-size:15px}
+  .notes dt{color:var(--text-2);font-size:13px}
+  .notes dd{margin:0 0 6px;font-weight:700}
+  .notes p{margin:6px 0 0;font-size:13px;color:var(--text-2)}
+
+  /* rider's phone */
+  .phone{display:flex;flex-direction:column;height:min(720px,calc(100vh - 110px));min-height:520px;overflow:hidden}
+  .phone-head{display:flex;align-items:center;gap:10px;padding:14px 16px;border-bottom:1px solid var(--line)}
+  .phone-head img{height:30px}
+  .phone-head b{font-family:'Space Grotesk',sans-serif}
+  .phone-head small{display:block;color:var(--text-2);font-size:13px}
+  .chat{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+  .bubble{max-width:88%;padding:10px 14px;border-radius:18px;font-size:18px;animation:in .25s ease-out both}
+  .bubble.ra{background:var(--agent-bg);border-bottom-left-radius:6px;align-self:flex-start}
+  .bubble.me{background:var(--rider-bg);border-bottom-right-radius:6px;align-self:flex-end}
+  .bubble.summary{background:#fff;border:2px solid var(--ink)}
+  .choices{display:flex;gap:8px;flex-wrap:wrap;align-self:flex-start}
+  .btn{border:0;border-radius:999px;padding:10px 18px;font-weight:700;font-size:17px}
+  .btn.primary{background:var(--ink);color:#fff}
+  .btn.ghost{background:#fff;color:var(--ink);border:2px solid var(--ink)}
+  .btn:disabled{opacity:.5;cursor:default}
+  .compose{border-top:1px solid var(--line);padding:12px;display:flex;flex-direction:column;gap:8px}
+  .suggest{background:var(--page);border:1px solid var(--line);border-radius:12px;padding:8px 12px;text-align:left;font-size:16px;color:var(--text)}
+  .row{display:flex;gap:8px}
+  .row input{flex:1;min-width:0;font:inherit;font-size:17px;padding:10px 14px;border:1px solid var(--line);border-radius:999px}
+  .mic{width:46px;height:46px;border-radius:50%;border:0;background:var(--accent);display:grid;place-items:center;flex:none}
+  .mic[aria-pressed="true"]{background:#d9480f}
+  .mic:disabled,.suggest:disabled{opacity:.5;cursor:default}
+
+  /* call panel */
+  .call{display:flex;flex-direction:column;height:min(720px,calc(100vh - 110px));min-height:520px;overflow:hidden}
+  .call-head{display:flex;align-items:center;gap:12px;padding:14px 18px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+  .call-head h2{padding:0;font-size:19px}
+  .status{margin-left:auto;display:flex;align-items:center;gap:8px;font-weight:700;font-size:15px;color:var(--text-2)}
+  .dot{width:10px;height:10px;border-radius:50%;background:#98A2B3}
+  .status.live .dot{background:#12B76A;box-shadow:0 0 0 4px rgba(18,183,106,.18)}
+  .status.hold .dot{background:var(--accent);animation:pulse 1.2s infinite}
+  .status.ended .dot{background:#667085}
+  .timer{font-variant-numeric:tabular-nums;color:var(--text-2);font-size:15px}
+  .parties{display:flex;gap:10px;padding:10px 18px;border-bottom:1px solid var(--line);font-size:14px;color:var(--text-2);flex-wrap:wrap}
+  .party{display:flex;align-items:center;gap:6px}
+  .party .avatar{width:26px;height:26px;font-size:12px}
+  .party.speaking .avatar{box-shadow:0 0 0 3px var(--accent)}
+  .transcript{flex:1;overflow-y:auto;padding:16px 18px;display:flex;flex-direction:column;gap:12px}
+  .line{display:flex;gap:10px;align-items:flex-start;animation:in .25s ease-out both}
+  .line .avatar{width:34px;height:34px;font-size:13px;margin-top:2px}
+  .line .who{font-size:13px;font-weight:700;color:var(--text-2);margin-bottom:2px}
+  .line .say{padding:10px 14px;border-radius:16px;border-top-left-radius:6px;font-size:18px}
+  .line.agent .say{background:var(--agent-bg)}
+  .line.rep .say{background:var(--rep-bg)}
+  .note{align-self:center;font-size:14px;color:var(--text-2);background:var(--page);border-radius:999px;padding:4px 12px;animation:in .25s ease-out both}
+  .note.ok{color:#067647;background:#ECFDF3}
+  .hold{align-self:stretch;background:#FFF8E1;border:1px solid #F5D46A;border-radius:14px;padding:12px 14px;animation:in .25s ease-out both}
+  .hold b{display:block}
+  .hold small{color:var(--text-2)}
+  .bar{height:6px;background:#F5E3A5;border-radius:6px;margin-top:8px;overflow:hidden}
+  .bar i{display:block;height:100%;width:0;background:var(--accent);transition:width linear}
+  .typing{display:inline-flex;gap:4px;padding:12px 14px}
+  .typing i{width:7px;height:7px;border-radius:50%;background:#98A2B3;animation:blink 1s infinite}
+  .typing i:nth-child(2){animation-delay:.15s}.typing i:nth-child(3){animation-delay:.3s}
+  .empty{margin:auto;text-align:center;color:var(--text-2);max-width:340px;font-size:16px}
+  .empty svg{display:block;margin:0 auto 10px}
+  .error{background:#FEF3F2;border:1px solid #FDA29B;color:#912018;border-radius:12px;padding:10px 14px;font-size:15px}
+  .passcode{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line)}
+  .passcode input{flex:1;font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px}
+  footer{font-size:13px;color:var(--text-2);text-align:center;padding:4px 16px 20px}
+  @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
+  @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+  @keyframes pulse{50%{opacity:.4}}
+  @media (prefers-reduced-motion: reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+<header>
+  <img src="assets/ride-assure-logo-sm.png" alt="">
+  <div class="t"><b>Ride Assure</b><span>Call demo: Ride Assure calls Access-A-Ride for you</span></div>
+  <span class="sim">Simulated AAR system · demo data</span>
+  <button class="voice-toggle" id="voiceBtn" type="button" aria-pressed="true">Voice on</button>
+</header>
+
+<main>
+  <!-- 1. Who is the rider -->
+  <section class="card rider-col" aria-labelledby="riderH">
+    <div class="kicker" id="riderH">Demo rider</div>
+    <div class="personas" role="radiogroup" aria-label="Choose a demo rider" id="personas"></div>
+    <dl class="notes" id="notes"></dl>
+  </section>
+
+  <!-- 2. The rider's Ride Assure app -->
+  <section class="card phone" aria-label="Ride Assure app">
+    <div class="phone-head">
+      <img src="assets/ride-assure-logo-sm.png" alt="">
+      <div><b>Ride Assure</b><small id="phoneSub">Helping Rosa</small></div>
+    </div>
+    <div class="chat" id="chat" aria-live="polite"></div>
+    <div class="compose">
+      <button class="suggest" id="suggestBtn" type="button">“Where's my ride? Can the driver come to my door?”</button>
+      <form class="row" id="askForm">
+        <label class="sr-only" for="ask">Ask Ride Assure</label>
+        <input id="ask" autocomplete="off" placeholder="Ask Ride Assure…">
+        <button class="mic" id="micBtn" type="button" aria-pressed="false" aria-label="Speak your request" hidden>
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15a3 3 0 0 0 3-3V6a3 3 0 0 0-6 0v6a3 3 0 0 0 3 3Zm5-3a5 5 0 0 1-10 0H5a7 7 0 0 0 6 6.9V21h2v-2.1A7 7 0 0 0 19 12h-2Z" fill="#0E1726"/></svg>
+        </button>
+        <button class="btn primary" type="submit">Send</button>
+      </form>
+    </div>
+  </section>
+
+  <!-- 3. The call -->
+  <section class="card call" aria-labelledby="callH">
+    <div class="call-head">
+      <h2 id="callH">Call with Access-A-Ride</h2>
+      <span class="timer" id="timer"></span>
+      <span class="status" id="status"><span class="dot"></span><span id="statusText">Not connected</span></span>
+    </div>
+    <div class="parties">
+      <span class="party" id="pAgent"><span class="avatar" style="background:var(--agent)">RA</span>Ride Assure (calling for the rider)</span>
+      <span class="party" id="pRep"><span class="avatar" style="background:var(--rep)">M</span>Marisol, AAR customer service (simulated)</span>
+    </div>
+    <div class="transcript" id="transcript" aria-live="polite">
+      <div class="empty" id="empty">
+        <svg width="44" height="44" viewBox="0 0 24 24" aria-hidden="true"><path d="M6.6 10.8a15.1 15.1 0 0 0 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.25 11.4 11.4 0 0 0 3.6.57 1 1 0 0 1 1 1V20a1 1 0 0 1-1 1A17 17 0 0 1 3 4a1 1 0 0 1 1-1h3.5a1 1 0 0 1 1 1c0 1.25.2 2.45.57 3.57a1 1 0 0 1-.25 1L6.6 10.8Z" fill="#98A2B3"/></svg>
+        Ask Ride Assure about your ride. When it calls Access-A-Ride for you, you'll see and hear the call here.
+      </div>
+    </div>
+    <form class="passcode" id="passForm" hidden>
+      <label class="sr-only" for="pass">Demo passcode</label>
+      <input id="pass" type="password" placeholder="Demo passcode">
+      <button class="btn primary" type="submit">Continue</button>
+    </form>
+  </section>
+</main>
+<footer>Everything here is made up for a class demo: riders, AAR IDs, vendors, vans, and the AAR rep. Not affiliated with the MTA or Access-A-Ride.</footer>
+
+<audio id="holdMusic" src="assets/music/jazz-rainy-lounge.mp3" preload="none" loop></audio>
+
+<script>
+(() => {
+  // ---------------------------------------------------------------- demo riders (match docs/demo-cheat-sheet.md)
+  const PERSONAS = [
+    { key: "rosa", firstName: "Rosa", lastName: "Tavares", aarId: "100234", dob: "1948-03-14", dobText: "March 14, 1948",
+      tripId: "58213", needs: "Wheelchair; needs door-to-door help", color: "#7A5AF8", helper: null },
+    { key: "ana", firstName: "Ana", lastName: "Lucero", aarId: "101142", dob: "1945-07-30", dobText: "July 30, 1945",
+      tripId: "58266", needs: "Low vision; driver must come to the door", color: "#DD2590", helper: "Dana (her daughter)" },
+    { key: "marcus", firstName: "Marcus", lastName: "Whitfield", aarId: "100587", dob: "1952-11-02", dobText: "November 2, 1952",
+      tripId: "58240", needs: "Uses a cane; needs help with steps", color: "#039855", helper: null },
+  ];
+  const $ = (id) => document.getElementById(id);
+  let persona = PERSONAS[0];
+  let busy = false;
+  let voiceOn = true;
+  let passcode = sessionStorage.getItem("raPass") || "";
+
+  // ---------------------------------------------------------------- rider picker
+  function renderPersonas() {
+    $("personas").innerHTML = "";
+    for (const p of PERSONAS) {
+      const b = document.createElement("button");
+      b.type = "button"; b.className = "persona"; b.setAttribute("role", "radio");
+      b.setAttribute("aria-checked", String(p === persona));
+      b.innerHTML = `<span class="avatar" style="background:${p.color}">${p.firstName[0]}${p.lastName[0]}</span>
+        <span><b>${p.firstName} ${p.lastName}</b><small>${p.helper ? `${p.helper.split(" ")[0]} is asking for her` : "Asking for herself"}</small></span>`;
+      if (p.key === "marcus") b.querySelector("small").textContent = "Asking for himself";
+      b.onclick = () => { if (!busy) { persona = p; renderPersonas(); resetChat(); } };
+      $("personas").appendChild(b);
+    }
+    $("notes").innerHTML = `
+      <dt>Saved in ${persona.firstName}'s Ride Assure profile</dt><dd>${persona.firstName} ${persona.lastName}</dd>
+      <dt>AAR ID</dt><dd>${persona.aarId}</dd>
+      <dt>Date of birth</dt><dd>${persona.dobText}</dd>
+      <dt>Today's Trip ID</dt><dd>${persona.tripId}</dd>
+      <dt>Needs</dt><dd>${persona.needs}</dd>
+      <p>Fake demo rider. Ride Assure shares the AAR ID and date of birth only after the rider says yes.</p>`;
+    $("phoneSub").textContent = persona.helper ? `Helping ${persona.helper.split(" ")[0]}, for ${persona.firstName}` : `Helping ${persona.firstName}`;
+  }
+
+  // ---------------------------------------------------------------- voice
+  let voices = [];
+  const loadVoices = () => { voices = speechSynthesis.getVoices().filter((v) => /^en(-|_)/i.test(v.lang)); };
+  if ("speechSynthesis" in window) { loadVoices(); speechSynthesis.onvoiceschanged = loadVoices; }
+  function pickVoice(who) {
+    if (!voices.length) return null;
+    const prefs = who === "rep"
+      ? ["Karen", "Moira", "Tessa", "Google UK English Female", "Microsoft Aria", "Victoria", "Fiona"]
+      : ["Samantha", "Google US English", "Microsoft Jenny", "Allison", "Ava", "Alex"];
+    for (const name of prefs) { const v = voices.find((x) => x.name.includes(name)); if (v) return v; }
+    return who === "rep" ? voices[Math.min(1, voices.length - 1)] : voices[0];
+  }
+  function speak(text, who) {
+    return new Promise((resolve) => {
+      const quiet = () => setTimeout(resolve, Math.min(6000, 500 + text.length * 45));
+      if (!voiceOn || !("speechSynthesis" in window)) return quiet();
+      const u = new SpeechSynthesisUtterance(text);
+      const v = pickVoice(who); if (v) u.voice = v;
+      u.rate = 0.98; u.pitch = who === "rep" ? 1.1 : 1.0;
+      let done = false;
+      const finish = () => { if (!done) { done = true; resolve(); } };
+      u.onend = finish; u.onerror = finish;
+      setTimeout(finish, 2500 + text.length * 120); // safety: some browsers never fire onend
+      speechSynthesis.speak(u);
+    });
+  }
+  $("voiceBtn").onclick = () => {
+    voiceOn = !voiceOn;
+    $("voiceBtn").setAttribute("aria-pressed", String(voiceOn));
+    $("voiceBtn").textContent = voiceOn ? "Voice on" : "Voice off";
+    if (!voiceOn && "speechSynthesis" in window) speechSynthesis.cancel();
+  };
+
+  // ---------------------------------------------------------------- rider chat
+  function bubble(text, who, extra = "") {
+    const d = document.createElement("div");
+    d.className = `bubble ${who} ${extra}`; d.textContent = text;
+    $("chat").appendChild(d); $("chat").scrollTop = $("chat").scrollHeight;
+    return d;
+  }
+  async function raSays(text, extra) { bubble(text, "ra", extra); await speak(text, "agent"); }
+  function resetChat() {
+    $("chat").innerHTML = "";
+    bubble(persona.helper
+      ? `Hi ${persona.helper.split(" ")[0]}. I'm Ride Assure. How can I help with ${persona.firstName}'s ride today?`
+      : `Hi ${persona.firstName}. I'm Ride Assure. How can I help with your ride today?`, "ra");
+    $("transcript").innerHTML = ""; $("transcript").appendChild(emptyEl);
+    setStatus("idle", "Not connected"); $("timer").textContent = "";
+    setComposer(true);
+  }
+  const emptyEl = $("empty");
+  function setComposer(on) {
+    for (const el of [$("ask"), $("suggestBtn"), $("micBtn"), ...$("askForm").querySelectorAll("button")]) el.disabled = !on;
+  }
+
+  async function handleRequest(text) {
+    if (busy || !text.trim()) return;
+    busy = true; setComposer(false);
+    bubble(text, "me");
+    await raSays(`I'll call Access-A-Ride for you. May I share ${persona.helper ? persona.firstName + "'s" : "your"} AAR ID and date of birth with them?`);
+    const choices = document.createElement("div"); choices.className = "choices";
+    choices.innerHTML = `<button class="btn primary" type="button">Yes, share it</button><button class="btn ghost" type="button">No</button>`;
+    $("chat").appendChild(choices); $("chat").scrollTop = $("chat").scrollHeight;
+    const [yes, no] = choices.querySelectorAll("button");
+    yes.focus();
+    no.onclick = async () => {
+      choices.remove(); bubble("No", "me");
+      await raSays("Okay, I won't share it, so I can't call for you. You can call Access-A-Ride at 877-337-2017.");
+      busy = false; setComposer(true);
+    };
+    yes.onclick = async () => {
+      choices.remove(); bubble("Yes, share it", "me");
+      await raSays("Thank you. Calling Access-A-Ride now. You can watch and listen to the call.");
+      await runCall(text);
+      busy = false; setComposer(true);
+    };
+  }
+  $("suggestBtn").onclick = () => handleRequest("Where's my ride? Can the driver come to my door?");
+  $("askForm").onsubmit = (e) => { e.preventDefault(); const t = $("ask").value; $("ask").value = ""; handleRequest(t); };
+
+  // optional: speak the request
+  const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if (Rec) {
+    $("micBtn").hidden = false;
+    $("micBtn").onclick = () => {
+      const r = new Rec(); r.lang = "en-US"; r.interimResults = false;
+      $("micBtn").setAttribute("aria-pressed", "true");
+      r.onresult = (e) => { const t = e.results[0][0].transcript; $("ask").value = t; };
+      r.onend = () => { $("micBtn").setAttribute("aria-pressed", "false"); if ($("ask").value) $("askForm").requestSubmit(); };
+      r.start();
+    };
+  }
+
+  // ---------------------------------------------------------------- the call
+  function setStatus(kind, text) {
+    $("status").className = `status ${kind}`; $("statusText").textContent = text;
+  }
+  let clock;
+  function startTimer() {
+    const t0 = Date.now(); clearInterval(clock);
+    clock = setInterval(() => { const s = Math.floor((Date.now() - t0) / 1000); $("timer").textContent = `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`; }, 500);
+  }
+  function addLine(who, text) {
+    emptyEl.remove();
+    const d = document.createElement("div"); d.className = `line ${who}`;
+    const isRep = who === "rep";
+    d.innerHTML = `<span class="avatar" style="background:var(--${isRep ? "rep" : "agent"})">${isRep ? "M" : "RA"}</span>
+      <div><div class="who">${isRep ? "Marisol · AAR (simulated)" : "Ride Assure"}</div><div class="say"></div></div>`;
+    d.querySelector(".say").textContent = text;
+    $("transcript").appendChild(d); $("transcript").scrollTop = $("transcript").scrollHeight;
+  }
+  function addNote(text, ok) {
+    const n = document.createElement("div"); n.className = `note ${ok ? "ok" : ""}`; n.textContent = text;
+    $("transcript").appendChild(n); $("transcript").scrollTop = $("transcript").scrollHeight;
+  }
+  function addError(text) {
+    emptyEl.remove();
+    const n = document.createElement("div"); n.className = "error"; n.textContent = text;
+    $("transcript").appendChild(n);
+  }
+  function typing(who) {
+    const d = document.createElement("div"); d.className = `line ${who}`;
+    d.innerHTML = `<span class="avatar" style="background:var(--${who === "rep" ? "rep" : "agent"})">${who === "rep" ? "M" : "RA"}</span><div class="say typing"><i></i><i></i><i></i></div>`;
+    $("transcript").appendChild(d); $("transcript").scrollTop = $("transcript").scrollHeight;
+    return d;
+  }
+  const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+  async function api(body) {
+    const res = await fetch("api/call", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...body, passcode }) });
+    const data = await res.json().catch(() => ({ message: "The server sent an unexpected reply." }));
+    if (res.status === 401 && data.error === "passcode") {
+      passcode = await askPasscode();
+      return api(body);
+    }
+    if (!res.ok) throw Object.assign(new Error(data.message || "The call dropped."), { data });
+    return data;
+  }
+  function askPasscode() {
+    return new Promise((resolve) => {
+      $("passForm").hidden = false; $("pass").focus();
+      $("passForm").onsubmit = (e) => {
+        e.preventDefault(); const v = $("pass").value; $("passForm").hidden = true;
+        sessionStorage.setItem("raPass", v); resolve(v);
+      };
+    });
+  }
+
+  // Events stream into a queue; a player shows and speaks them one at a time while the
+  // next step is already being fetched, so the call keeps moving.
+  async function runCall(request) {
+    $("transcript").innerHTML = "";
+    setStatus("live", "Dialing…"); startTimer();
+    const rider = { aarId: persona.aarId, dob: persona.dob, firstName: persona.firstName, lastName: persona.lastName,
+                    needs: persona.needs, request, requestedBy: persona.helper };
+    let started;
+    try { started = await api({ action: "start", rider }); }
+    catch (err) { return failed(err); }
+    await sleep(900);
+    setStatus("live", "Connected");
+    const queue = []; let finished = false; let wake = null;
+    const push = (evs) => { queue.push(...evs); if (wake) { wake(); wake = null; } };
+
+    (async () => {
+      let { callId, ticket, state } = started;
+      try {
+        while (!state.done) {
+          const out = await api({ action: "step", callId, ticket, state });
+          state = out.state; push(out.events);
+        }
+      } catch (err) { push([{ type: "error", err }]); }
+      finished = true; if (wake) { wake(); wake = null; }
+    })();
+
+    let pendingTyping = typing("rep");
+    while (true) {
+      if (!queue.length) {
+        if (finished) break;
+        await new Promise((r) => (wake = r));
+        continue;
+      }
+      const e = queue.shift();
+      if (pendingTyping) { pendingTyping.remove(); pendingTyping = null; }
+      if (e.type === "say") {
+        $(e.who === "rep" ? "pRep" : "pAgent").classList.add("speaking");
+        addLine(e.who, e.text);
+        await speak(e.text, e.who);
+        $(e.who === "rep" ? "pRep" : "pAgent").classList.remove("speaking");
+        if (!queue.length && !finished) pendingTyping = typing(e.who === "rep" ? "agent" : "rep");
+      } else if (e.type === "note") {
+        addNote(e.text, /verified$/i.test(e.text) && !/not/i.test(e.text)); await sleep(500);
+      } else if (e.type === "hold") {
+        await holdFor(e.seconds, e.text);
+      } else if (e.type === "hold_end") {
+        setStatus("live", "Connected");
+      } else if (e.type === "summary") {
+        setStatus("ended", "Call ended"); clearInterval(clock);
+        await raSays(e.text, "summary");
+      } else if (e.type === "done") {
+        addNote(`Call ended · AAR ticket ${e.ticket}`, true);
+      } else if (e.type === "error") {
+        return failed(e.err);
+      }
+    }
+    clearInterval(clock);
+  }
+
+  async function holdFor(seconds, text) {
+    setStatus("hold", "On hold");
+    const h = document.createElement("div"); h.className = "hold";
+    h.innerHTML = `<b>${text}</b><small>Ride Assure is waiting on the line. No action needed.</small><div class="bar"><i></i></div>`;
+    $("transcript").appendChild(h); $("transcript").scrollTop = $("transcript").scrollHeight;
+    const bar = h.querySelector(".bar i");
+    requestAnimationFrame(() => { bar.style.transitionDuration = `${seconds}s`; bar.style.width = "100%"; });
+    const music = $("holdMusic");
+    if (voiceOn) { music.volume = 0.25; music.currentTime = 0; music.play().catch(() => {}); }
+    await sleep(seconds * 1000);
+    for (let v = music.volume; v > 0.02; v -= 0.05) { music.volume = Math.max(0, v); await sleep(40); }
+    music.pause();
+    h.querySelector("small").textContent = "Back on the line.";
+    setStatus("live", "Connected");
+  }
+
+  async function failed(err) {
+    clearInterval(clock);
+    setStatus("ended", "Call dropped");
+    const d = err?.data;
+    addError(d?.error === "setup" ? `Setup needed: ${d.message}` : (err?.message || "The call dropped."));
+    await raSays("I'm sorry, the call dropped. Please try again in a moment, or call Access-A-Ride at 877-337-2017.");
+  }
+
+  renderPersonas();
+  resetChat();
+})();
+</script>
+</body>
+</html>
