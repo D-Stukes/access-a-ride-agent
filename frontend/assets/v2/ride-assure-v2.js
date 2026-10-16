@@ -353,9 +353,10 @@
     }
     box.querySelector(".la-x").onclick = () => { hush(); box.remove(); };
     list.parentNode.insertBefore(box, list);
+    const m = (a.summary || "").match(/(\d{1,2})\s*minutes?/i);
+    if (a.wait && !m) a.wait = false;   // no van on the way (no time given): nothing to wait for
     if (a.wait) {
-      const m = (a.summary || "").match(/(\d{1,2})\s*minutes?/i);
-      const eta = m && +m[1] >= 3 && +m[1] <= 60 ? +m[1] : 15;
+      const eta = +m[1] >= 3 && +m[1] <= 60 ? +m[1] : 15;
       startWait(phone, eta);
       const wb = $make("button", "v2-wait-btn"); wb.type = "button";
       wb.innerHTML = '<span><b>While you wait</b><small>Play a game or listen to music</small></span><span class="eta"></span>';
