@@ -115,6 +115,7 @@
     run.dead = true;
     if (run.rec) { try { run.rec.abort(); } catch (e) {} }
     if (run.music) { try { run.music.pause(); } catch (e) {} }
+    if (run.endHold) run.endHold();
     hush();
     if (run.ui && run.ui.parentNode) run.ui.remove();
     if (run.btn) run.btn.classList.remove("speaking");
@@ -164,7 +165,7 @@
       let done = false;
       const pick = (d) => { if (!done) { done = true; if (me.rec) { try { me.rec.abort(); } catch (e) {} } resolve(d); } };
       me.hangup = () => pick("hangup");
-      q("[data-yes]").onclick = () => pick("yes");
+      q("[data-yes]").onclick = () => { unlockHold(me); pick("yes"); };
       q("[data-no]").onclick = () => pick("no");
       (async () => {
         await speakAs(ask, "agent");
@@ -174,7 +175,7 @@
           if (done || !alive()) return;
           const d = yesOrNo(heard);
           q(".v2-heard").textContent = heard ? "Heard: “" + heard + "”" : "";
-          if (d) return pick(d);
+          if (d) { if (d === "yes") unlockHold(me); return pick(d); }
         }
         if (!done) q(".v2-heard").textContent = "Tap Yes or No.";
       })();
@@ -211,7 +212,7 @@
     updateTripStrip(phone, started.trip, "On the way");
 
     // 3) the conversation, one step at a time
-    me.hangup = () => { hush(); if (me.music) { try { me.music.pause(); } catch (e) {} } };
+    me.hangup = () => { hush(); if (me.music) { try { me.music.pause(); } catch (e) {} } if (me.endHold) me.endHold(); };
     let state = started.state;
     try {
       for (let n = 0; n < 24 && !state.done && !hungUp && alive(); n++) {
@@ -231,7 +232,7 @@
             const h = $make("div", "v2-hold"); h.innerHTML = '<i aria-hidden="true">♫</i><span></span>';
             h.lastElementChild.textContent = "On hold while AAR contacts the vendor. Smooth jazz is playing.";
             log.appendChild(h); log.scrollTop = log.scrollHeight;
-            await playHold(me, Math.max(5, e.seconds || 6) * 1000);
+            await playHold(me, phone, alive);
           } else if (e.type === "hold_end") {
             wave.classList.remove("hold");
             status.textContent = "Connected · Marisol, AAR (simulated)";
@@ -283,14 +284,46 @@
   }
   function addChip(log, text, ok) { log.appendChild($make("span", "v2-chip" + (ok ? " ok" : ""), text)); log.scrollTop = log.scrollHeight; }
 
-  async function playHold(me, ms) {
-    const a = new Audio("assets/music/jazz-rainy-lounge.mp3"); me.music = a; a.volume = 0.35; a.loop = true;
+  const HOLD_FILE = "assets/music/jazz-rainy-lounge.mp3";
+  const HOLD_MS = 20000;   // how long Ride Assure stays on hold in the demo
+  function unlockHold(me) {
+    if (me.holdAudio) return;
+    const a = new Audio(HOLD_FILE); a.loop = true; a.preload = "auto"; me.holdAudio = a;
+    a.volume = 0; a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
+  }
+  // On hold: smooth jazz plays, and the rider can switch music or play a game until Marisol is back
+  async function playHold(me, phone, alive) {
+    const a = me.holdAudio || new Audio(HOLD_FILE);
+    me.music = a; a.loop = true; a.volume = 0.7;
+    try { a.currentTime = 0; } catch (e) {}
     hush();
-    a.play().catch(() => {});
-    await sleep(ms);
-    for (let v = a.volume; v > 0.02; v -= 0.05) { a.volume = Math.max(0, v); await sleep(60); }
-    try { a.pause(); } catch (e) {}
+    a.play().catch((err) => console.warn("[Ride Assure v2] hold music blocked:", err.message));
+    const sheet = buildSheet(phone, "hold", a);
+    me.holdSheet = sheet;
+    const t0 = Date.now();
+    await new Promise((resolve) => {
+      const iv = setInterval(() => {
+        const left = Math.max(0, HOLD_MS - (Date.now() - t0));
+        sheet.querySelector(".v2-eta .num").textContent = Math.ceil(left / 1000);
+        sheet.querySelector(".v2-bar i").style.width = (100 - (left / HOLD_MS) * 100) + "%";
+        if (left <= 0 || !alive()) { clearInterval(iv); resolve(); }
+      }, 250);
+      me.endHold = () => { clearInterval(iv); me.endHold = null; resolve(); };
+    });
+    me.endHold = null;
+    const music = sheet.audio || a;
+    for (let v = music.volume; v > 0.02; v -= 0.07) { music.volume = Math.max(0, v); await sleep(50); }
+    [a, music].forEach((x) => { try { x.pause(); } catch (e) {} });
     if (me.music === a) me.music = null;
+    if (alive()) {
+      sheet.querySelectorAll(".v2-alert").forEach((x) => x.remove());
+      const box = $make("div", "v2-alert block"); box.setAttribute("role", "alert");
+      box.append($make("p", null, "Marisol is back on the line."));
+      sheet.appendChild(box);
+      chime();
+      await sleep(1600);
+    }
+    sheet.remove(); me.holdSheet = null;
   }
 
   function updateTripStrip(phone, trip, statusText) {
@@ -388,25 +421,37 @@
   }
 
   function buildWait(phone) {
-    const s = $make("div", "v2-wait"); s.setAttribute("role", "dialog"); s.setAttribute("aria-label", "While you wait");
+    const audio = new Audio(); audio.loop = true; audio.volume = 0.6;
+    wait.audio = audio;
+    wait.sheet = buildSheet(phone, "wait", audio);
+    renderSpeed();
+  }
+  function buildSheet(phone, mode, audio) {
+    const hold = mode === "hold";
+    const s = $make("div", "v2-wait"); s.setAttribute("role", "dialog"); s.setAttribute("aria-label", hold ? "While you're on hold" : "While you wait");
     s.innerHTML = `
-      <div class="v2-wait-top"><h3>While you wait</h3><button type="button" class="v2-x">Close</button></div>
-      <div class="v2-eta"><span class="num">15</span><span class="lbl"><b>minutes until your van arrives</b><small>I'll pause for you at 5 minutes, and when it's on your block.</small><span class="v2-bar"><i></i></span></span></div>
+      <div class="v2-wait-top"><h3></h3><button type="button" class="v2-x">${hold ? "Back to the call" : "Close"}</button></div>
+      <div class="v2-eta"><span class="num"></span><span class="lbl"><b></b><small></small><span class="v2-bar"><i></i></span></span></div>
       <div class="v2-tabs" role="group" aria-label="Choose one">
-        <button type="button" class="v2-tab" data-tab="game" aria-pressed="false">🎮 Play a game</button>
-        <button type="button" class="v2-tab" data-tab="music" aria-pressed="false">🎵 Listen to music</button>
+        <button type="button" class="v2-tab" data-tab="game" aria-pressed="false">\uD83C\uDFAE Play a game</button>
+        <button type="button" class="v2-tab" data-tab="music" aria-pressed="false">\uD83C\uDFB5 Listen to music</button>
       </div>
       <div class="v2-pane" data-pane="pick"><div class="v2-pick"><p class="big">What would you like to do?</p><p>Pick a game or some music. You can switch any time.</p></div></div>
       <div class="v2-pane" data-pane="game" hidden></div>
       <div class="v2-pane" data-pane="music" hidden></div>
       <p class="v2-speed"></p>`;
+    s.querySelector("h3").textContent = hold ? "While you're on hold" : "While you wait";
+    s.querySelector(".num").textContent = hold ? Math.round(HOLD_MS / 1000) : "15";
+    s.querySelector(".lbl b").textContent = hold ? "seconds \u00B7 Marisol is checking with the vendor" : "minutes until your van arrives";
+    s.querySelector(".lbl small").textContent = hold ? "Smooth jazz is playing. Pick other music, or play a game." : "I'll pause for you at 5 minutes, and when it's on your block.";
+    s.audio = audio;
     phone.appendChild(s);
-    wait.sheet = s;
     s.querySelector(".v2-x").onclick = () => { s.hidden = true; };
-    s.querySelectorAll(".v2-tab").forEach((t) => t.onclick = () => showTab(t.dataset.tab));
+    s.querySelectorAll(".v2-tab").forEach((t) => t.onclick = () => showTab(s, t.dataset.tab));
     buildGame(s.querySelector('[data-pane="game"]'));
-    buildMusic(s.querySelector('[data-pane="music"]'));
-    renderSpeed();
+    buildMusic(s.querySelector('[data-pane="music"]'), audio, hold ? "Jazz" : null);
+    if (hold) showTab(s, "music");
+    return s;
   }
   function renderSpeed() {
     if (!wait || !wait.sheet) return;
@@ -417,11 +462,9 @@
     b.onclick = () => setSpeed(fast ? 60000 : DEMO_MS_PER_MIN);
     p.appendChild(b);
   }
-  function showTab(name) {
-    const s = wait.sheet;
+  function showTab(s, name) {
     s.querySelectorAll(".v2-tab").forEach((t) => t.setAttribute("aria-pressed", String(t.dataset.tab === name)));
     s.querySelectorAll(".v2-pane").forEach((p) => p.hidden = p.dataset.pane !== name);
-    if (name === "game" && wait.audio && !wait.audio.paused) { /* music can keep playing during the game */ }
   }
 
   // memory game: find the matching pairs
@@ -447,7 +490,8 @@
             const again = $make("button", "app-btn line sm", "Play again"); again.type = "button"; again.style.marginTop = "8px";
             again.onclick = () => buildGame(pane);
             win.appendChild(again);
-            if (!(wait && wait.audio && !wait.audio.paused)) speakAs("You matched them all. Nice work!", "agent");
+            const sheetAudio = pane.closest(".v2-wait") && pane.closest(".v2-wait").audio;
+            if (!(sheetAudio && !sheetAudio.paused)) speakAs("You matched them all. Nice work!", "agent");
           }
         } else {
           lock = true;
@@ -467,12 +511,11 @@
   ] };
   const PLAY = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5v14l11-7z" fill="#fff"/></svg>';
   const PAUSE = '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="5" width="4" height="14" fill="#fff"/><rect x="14" y="5" width="4" height="14" fill="#fff"/></svg>';
-  async function buildMusic(pane) {
+  async function buildMusic(pane, audio, current) {
     let data = FALLBACK_TRACKS;
     try { const r = await fetch("assets/music/tracks.json"); if (r.ok) data = await r.json(); } catch (e) {}
     pane.innerHTML = '<div class="v2-genres" role="group" aria-label="Music"></div><div class="v2-now"><div class="t"><b>Pick a style of music</b><small>Smooth jazz, gospel, country, or soul</small></div><button type="button" class="v2-play" aria-label="Play">' + PLAY + '</button></div><label class="v2-vol">Volume <input type="range" min="0" max="1" step="0.05" value="0.6"></label>';
     const gWrap = pane.querySelector(".v2-genres"), title = pane.querySelector(".t b"), sub = pane.querySelector(".t small"), play = pane.querySelector(".v2-play"), vol = pane.querySelector("input");
-    const audio = new Audio(); audio.loop = true; audio.volume = 0.6; wait.audio = audio;
     const counts = {};
     const sync = () => { play.innerHTML = audio.paused ? PLAY : PAUSE; play.setAttribute("aria-label", audio.paused ? "Play" : "Pause"); };
     audio.onplay = audio.onpause = sync;
@@ -487,6 +530,17 @@
       };
       gWrap.appendChild(b);
     });
+    vol.value = audio.volume || 0.6;
+    if (current) {   // music already playing (the hold music): show it as the current pick
+      const g = data.genres.find((x) => x.genre === current);
+      const i = data.genres.indexOf(g);
+      if (g) {
+        counts[g.genre] = 0;
+        gWrap.children[i].setAttribute("aria-pressed", "true");
+        title.textContent = g.tracks[0].title; sub.textContent = (g.genre === "Jazz" ? "Smooth jazz" : g.genre) + " \u00B7 " + g.tracks[0].artist;
+      }
+    }
+    sync();
     play.onclick = () => {
       if (!audio.src) { gWrap.querySelector(".v2-genre").click(); return; }
       audio.paused ? audio.play().catch(() => {}) : audio.pause();
