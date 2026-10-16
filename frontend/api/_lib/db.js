@@ -13,9 +13,11 @@ export function getDb() {
   const url = process.env.SUPABASE_URL;
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
   if (!url || !key) {
+    const missing = [!url && "SUPABASE_URL", !key && "SUPABASE_SERVICE_ROLE_KEY"].filter(Boolean).join(" and ");
+    const where = process.env.VERCEL_ENV ? ` in Vercel's ${process.env.VERCEL_ENV} environment` : "";
     throw new SetupError(
-      "The server is missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY. " +
-      "Add them in Vercel (Settings → Environment Variables) or in your local .env file."
+      `The server can't see ${missing}${where} (missing or empty). ` +
+      "In Vercel → Settings → Environment Variables, make sure each has a value and Preview is ticked, then redeploy."
     );
   }
   return supabaseDb(url, key);
