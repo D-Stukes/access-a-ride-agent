@@ -1,0 +1,105 @@
+/* Ride Assure v2: the live (simulated) AAR call and "While you wait", inside the v1 phone design */
+
+/* v2 note under the Try It heading */
+.v2-flag{display:inline-flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 12px;margin:14px auto 0;padding:8px 16px;
+  border-radius:999px;background:rgba(14,23,38,.72);color:#fff;font-size:15px;line-height:1.35;backdrop-filter:blur(6px);-webkit-backdrop-filter:blur(6px)}
+.v2-flag b{color:#F2B705}
+.v2-flag a{color:#A9D2F5;font-weight:700}
+
+/* the call screen: once connected, the avatar shrinks and the conversation scrolls */
+.call-ui.v2{padding:58px 16px 18px}
+.call-ui.v2.connected .call-avatar{flex-basis:46px;width:46px;height:46px;margin:0 auto 6px}
+.call-ui.v2.connected .call-avatar svg{width:22px;height:22px}
+.call-ui.v2.connected .call-name{font-size:18px}
+.call-ui.v2.connected .call-status{font-size:14px;min-height:18px}
+.call-ui.v2.connected .call-num{display:none}
+.call-ui.v2.connected .who,.call-ui.v2.connected .said,.call-ui.v2.connected .agent-line{display:none}
+.call-ui.v2 .agent-line{margin:0 0 14px}
+.v2-consent{display:flex;gap:10px;justify-content:center;margin:-4px 0 16px}
+.v2-consent .app-btn{min-width:120px}
+.v2-consent .app-btn.line{background:transparent;color:#fff;border-color:rgba(255,255,255,.6)}
+.v2-heard{font-size:13px;color:#A9D2F5;margin:-8px 0 12px;min-height:18px}
+.v2-log{flex:1 1 auto;width:100%;overflow-y:auto;display:flex;flex-direction:column;gap:8px;padding:6px 2px 10px;text-align:left;
+  scrollbar-width:none;mask-image:linear-gradient(180deg,transparent 0,#000 14px,#000 calc(100% - 10px),transparent 100%)}
+.v2-log::-webkit-scrollbar{display:none}
+.v2-log[hidden]{display:none}
+.v2-line{max-width:92%;border-radius:16px;padding:8px 12px;font-size:15px;line-height:1.35;animation:riseIn .3s ease-in-out both}
+.v2-line small{display:block;font-size:11px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;margin-bottom:2px;opacity:.8}
+.v2-line.rep{align-self:flex-start;background:#fff;color:#0E1F45;border-bottom-left-radius:6px}
+.v2-line.rep small{color:#0B6770;opacity:1}
+.v2-line.agent{align-self:flex-end;background:#0B6770;color:#fff;border-bottom-right-radius:6px}
+.v2-chip{align-self:center;font-size:12px;font-weight:700;color:#C9D2E3;background:rgba(255,255,255,.1);border-radius:999px;padding:3px 10px}
+.v2-chip.ok{color:#0E1F45;background:#7DD3DB}
+.v2-hold{align-self:stretch;display:flex;align-items:center;gap:10px;background:rgba(242,183,5,.16);border:1px solid rgba(242,183,5,.6);
+  border-radius:14px;padding:8px 12px;font-size:14px;font-weight:700;color:#FDE7A6}
+.v2-hold i{font-style:normal;font-size:20px}
+.call-ui.v2 .end-call{margin-top:8px;flex:0 0 auto;width:58px;height:58px}
+.call-ui.v2 .end-label{margin:4px 0 0}
+
+/* answer card extras */
+.last-answer .v2-ticket{display:inline-block;margin-top:6px;font-size:12px;font-weight:700;color:#0B6770;background:#E6F4F1;border-radius:999px;padding:3px 10px}
+
+/* While you wait */
+.v2-wait-btn{display:flex;align-items:center;gap:10px;width:100%;border:0;cursor:pointer;font:inherit;text-align:left;border-radius:16px;padding:10px 12px;
+  background:linear-gradient(135deg,#123A7A,#0B6770);color:#fff;box-shadow:0 4px 0 #0a2a5a,0 10px 18px rgba(10,25,60,.25);margin-bottom:6px;flex:0 0 auto}
+.v2-wait-btn b{display:block;font-family:'Space Grotesk',sans-serif;font-size:16px}
+.v2-wait-btn small{display:block;font-size:13px;color:#C9E7EA}
+.v2-wait-btn .eta{margin-left:auto;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:20px;color:#F2B705;white-space:nowrap}
+
+.v2-wait{position:absolute;inset:14px;border-radius:52px;z-index:6;overflow:hidden;display:flex;flex-direction:column;
+  padding:56px 16px 18px;background:linear-gradient(180deg,#FFF6E5 0%,#F7F8FB 60%);color:#101828;animation:riseIn .35s ease-in-out both}
+.v2-wait[hidden]{display:none}
+.v2-wait-top{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.v2-wait-top h3{font-family:'Space Grotesk',sans-serif;font-size:22px;margin:0}
+.v2-x{border:0;background:#EEF2F7;color:#344054;font:inherit;font-weight:700;font-size:14px;border-radius:999px;padding:8px 14px;cursor:pointer}
+.v2-eta{margin:10px 0 12px;background:var(--navy,#0E1726);color:#fff;border-radius:16px;padding:10px 14px;display:flex;align-items:center;gap:12px}
+.v2-eta .num{font-family:'Space Grotesk',sans-serif;font-size:34px;font-weight:700;color:#F2B705;line-height:1}
+.v2-eta .lbl{flex:1;min-width:0;font-size:13px;line-height:1.3}
+.v2-eta .lbl b{display:block;font-size:15px}
+.v2-eta .lbl small{display:block;font-size:12px;color:#C9D2E3}
+.v2-bar{height:8px;border-radius:999px;background:rgba(255,255,255,.18);overflow:hidden;margin-top:6px}
+.v2-bar i{display:block;height:100%;width:0;background:#7DD3DB;transition:width .8s linear}
+.v2-tabs{display:flex;gap:8px;margin-bottom:10px}
+.v2-tab{flex:1;font:inherit;font-weight:700;font-size:16px;border-radius:14px;padding:12px 8px;cursor:pointer;border:2px solid #98A2B3;background:#fff;color:#101828}
+.v2-tab[aria-pressed="true"]{background:#0B6770;border-color:#0B6770;color:#fff}
+.v2-pane{flex:1 1 auto;overflow-y:auto;scrollbar-width:none}
+.v2-pane::-webkit-scrollbar{display:none}
+.v2-pane[hidden]{display:none}
+.v2-pick{text-align:center;color:#344054;font-size:16px;padding:18px 6px}
+.v2-pick .big{font-family:'Space Grotesk',sans-serif;font-size:20px;font-weight:700;color:#0E1F45;margin:0 0 6px}
+
+/* memory game */
+.v2-game-head{display:flex;justify-content:space-between;align-items:center;font-size:14px;font-weight:700;color:#344054;margin-bottom:8px}
+.v2-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.v2-card{aspect-ratio:3/4;border:0;border-radius:14px;cursor:pointer;font-size:30px;display:grid;place-items:center;
+  background:linear-gradient(135deg,#123A7A,#1849A9);color:transparent;box-shadow:0 3px 0 #0a2a5a;transition:transform .2s ease}
+.v2-card:active{transform:translateY(2px)}
+.v2-card.up,.v2-card.done{background:#fff;color:#101828;box-shadow:0 0 0 2px #0B6770 inset}
+.v2-card.done{background:#E6F4F1;cursor:default}
+.v2-card:not(.up):not(.done)::after{content:"?";color:#A9D2F5;font-family:'Space Grotesk',sans-serif;font-weight:700;font-size:26px}
+.v2-win{margin:10px 0 0;text-align:center;font-weight:700;color:#05603A}
+
+/* music */
+.v2-genres{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px}
+.v2-genre{font:inherit;font-weight:700;font-size:16px;border-radius:14px;padding:14px 8px;cursor:pointer;border:2px solid #98A2B3;background:#fff;color:#101828}
+.v2-genre[aria-pressed="true"]{border-color:#0B6770;background:#E6F4F1}
+.v2-now{background:#fff;border-radius:16px;padding:12px 14px;box-shadow:0 4px 14px rgba(10,25,60,.12);display:flex;align-items:center;gap:12px}
+.v2-now .t{flex:1;min-width:0}
+.v2-now .t b{display:block;font-size:16px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.v2-now .t small{font-size:13px;color:#475467}
+.v2-play{flex:0 0 52px;height:52px;border-radius:999px;border:0;background:#0B6770;color:#fff;cursor:pointer;display:grid;place-items:center}
+.v2-vol{display:flex;align-items:center;gap:8px;margin-top:12px;font-size:14px;color:#344054}
+.v2-vol input{flex:1;accent-color:#0B6770}
+
+/* van alerts (5 minutes away, on your block) */
+.v2-alert{position:absolute;left:12px;right:12px;bottom:18px;z-index:2;border-radius:18px;padding:14px 16px;color:#fff;
+  background:#B54708;box-shadow:0 14px 30px rgba(0,0,0,.3);animation:riseIn .3s ease-in-out both}
+.v2-alert.block{background:#05603A}
+.v2-alert p{margin:0 0 10px;font-family:'Space Grotesk',sans-serif;font-size:19px;font-weight:700;line-height:1.25}
+.v2-alert .app-btn{background:#fff;color:#101828}
+.v2-speed{margin:8px 0 0;font-size:12px;color:#667085;text-align:center}
+.v2-speed button{font:inherit;font-weight:700;color:#0B6770;background:none;border:0;text-decoration:underline;cursor:pointer;padding:0}
+#demos .demo-head{max-height:420px}
+#demos.head-gone .demo-head{max-height:0}
+@media (max-width:640px){.v2-flag{font-size:13px;border-radius:16px;padding:8px 12px}}
+.v2-flag{display:flex;width:fit-content;max-width:min(860px,100%);border-radius:18px}
