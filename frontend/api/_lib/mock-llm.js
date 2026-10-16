@@ -44,22 +44,18 @@ function repTurn(messages) {
   const v = lastResult(flat, "verify_caller");
   if (v && !v.verified) return [txt("I'm sorry, those details don't match our records. Could you check the AAR ID and date of birth?")];
 
+  // Once verified, do everything in this one turn: status, vendor (if asked), note, then one answer.
   if (!called("get_ride_status")) return [txt(`Thank you, ${v?.first_name ?? "the rider"}'s account is verified. One moment while I check the van.`), tool("get_ride_status", {})];
-  if (lastUser?.type === "tool_result" && lastResult(flat, "get_ride_status") && !called("contact_vendor") && !userText.match(/door/i)) {
-    const s = lastResult(flat, "get_ride_status");
-    return [txt(`The ${s.vendor} van is about ${s.eta_minutes} minutes away, with ${s.stops_before_pickup} ${s.stops_before_pickup === 1 ? "stop" : "stops"} before the pickup. Is there anything else?`)];
-  }
-  if (!called("contact_vendor") && /door|call/i.test(userText)) return [txt("Of course. I'll place you on a brief hold while I contact the vendor."), tool("contact_vendor", { request: "Driver to call on arrival and come to the door to help with boarding." })];
-  if (lastUser?.type === "tool_result" && called("contact_vendor") && !called("add_call_note")) {
-    const r = lastResult(flat, "contact_vendor");
-    return [txt(`Thank you for holding. The vendor says: ${r.vendor_response.replace(/^.*?dispatch here\. /, "")} Anything else?`)];
-  }
+  if (!called("contact_vendor") && /door|call/i.test(userText)) return [txt("I'll place you on a brief hold while I contact the vendor."), tool("contact_vendor", { request: "Driver to call on arrival and come to the door to help with boarding." })];
   if (!called("add_call_note")) return [tool("add_call_note", { note: "Ride Assure called for the rider; gave ETA and stops; vendor asked to call and come to the door." })];
+  const s = lastResult(flat, "get_ride_status") || {};
+  const r = lastResult(flat, "contact_vendor");
+  const vendor = r ? ` The vendor says: ${String(r.vendor_response || "they have the request.").replace(/^.*?dispatch here\. /, "")}` : "";
   const note = lastResult(flat, "add_call_note");
-  return [txt(`You're all set. Your ticket number is ${note?.ticket_number}. Thank you for calling Access-A-Ride.`)];
+  return [txt(`Thank you for holding. The ${s.vendor} van is about ${s.eta_minutes} minutes away, with ${s.stops_before_pickup} ${s.stops_before_pickup === 1 ? "stop" : "stops"} before the pickup.${vendor} Your ticket number is ${note?.ticket_number}.`)];
 }
 
-function agentTurn(messages, system) {
+function agentTurn(messages, system, forceEnd) {
   const said = messages.filter((m) => m.role === "assistant").length;
   const name = system.match(/Name: (.+)/)?.[1] ?? "my rider";
   const aar = system.match(/AAR ID: (\d+)/)?.[1];
@@ -67,14 +63,13 @@ function agentTurn(messages, system) {
   const last = messages[messages.length - 1];
   const lastText = typeof last.content === "string" ? last.content : last.content.filter((b) => b.type === "text").map((b) => b.text).join(" ");
   const ticket = lastText.match(/ticket number is ([A-Z]-\d+)/)?.[1];
-  if (ticket) {
-    return [txt("Thank you so much. Goodbye."), tool("end_call", { summary_for_rider: `Your van is on the way. The driver will call when they arrive and come to your door to help you. Your ticket number is ${ticket}.` })];
+  if (ticket || forceEnd) {
+    return [txt("Thank you so much. Goodbye."), tool("end_call", { summary_for_rider: `Your van is on the way. The driver will call when they arrive and come to your door to help you.${ticket ? ` Your ticket number is ${ticket}.` : ""}` })];
   }
-  if (said === 0) return [txt(`Hello, this is Ride Assure, an assistant calling for my rider, ${name}. Her AAR ID is ${aar} and her date of birth is ${dob}.`)];
-  if (/door/i.test(lastText) || /vendor says/i.test(lastText)) return [txt("That's everything. Could you note this call for us, please?")];
-  return [txt("Thank you. She uses a wheelchair. Could the driver call when they arrive and come to the door to help?")];
+  if (said === 0) return [txt(`Hello, this is Ride Assure, an assistant calling for my rider, ${name}. Her AAR ID is ${aar} and her date of birth is ${dob}. Where is her van, and how many stops are before her? She uses a wheelchair, so could the driver call when they arrive and come to the door?`)];
+  return [txt("Could you give me the ticket number for this call, please?")];
 }
 
 export function mockLlm() {
-  return async ({ role, system, messages }) => ({ content: role === "rep" ? repTurn(messages) : agentTurn(messages, system) });
+  return async ({ role, system, messages, toolChoice }) => ({ content: role === "rep" ? repTurn(messages) : agentTurn(messages, system, !!toolChoice) });
 }

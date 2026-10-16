@@ -35,6 +35,7 @@ check("rep gave stops before pickup", events.some((e) => e.who === "rep" && /1 s
 check("summary for the rider", events.some((e) => e.type === "summary"));
 check("call saved with transcript + outcome", row.outcome === "completed" && row.transcript.length >= 6 && !!row.ended_at);
 check("steps used", state.steps <= 20, String(state.steps));
+check("short call: Ride Assure spoke 3 times or fewer", events.filter((e) => e.who === "agent").length <= 3, String(events.filter((e) => e.who === "agent").length));
 
 console.log("\n=== 2. Tools are locked until the caller is verified");
 const s2 = await call({ action: "start", rider: ROSA });
