@@ -75,8 +75,12 @@ const NOT_VERIFIED = { error: "not_verified", message: "Verify the caller first 
 // ---------------------------------------------------------------- today's trip
 async function todaysTrip(db, customerId) {
   const trips = await db.select("trips", { eq: { customer_id: customerId }, order: { column: "scheduled_pickup", ascending: false }, limit: 40 });
-  const today = new Date().toLocaleDateString("en-CA", { timeZone: NY });
-  const todays = trips.filter((t) => new Date(t.scheduled_pickup).toLocaleDateString("en-CA", { timeZone: NY }) === today);
+  // "Today's" trip = within 12 hours of now, so the demo still works when the moved pickup
+  // crosses midnight (a call at 11:50 PM puts the pickup at 12:05 AM).
+  const now = Date.now();
+  const todays = trips.filter((t) => Math.abs(new Date(t.scheduled_pickup).getTime() - now) < 12 * 3600000);
+  const gap = (t) => Math.abs(new Date(t.scheduled_pickup).getTime() - now);
+  todays.sort((x, y) => gap(x) - gap(y));   // closest to now first
   if (!todays.length) return null;
   const onRun = await db.select("run_stops", { in: { trip_id: todays.map((t) => t.id) } });
   const runTripIds = new Set(onRun.map((s) => s.trip_id));
