@@ -197,8 +197,10 @@ export async function step(db, llm, callId, state) {
 
 // ---------------------------------------------------------------- the model
 export function anthropicLlm() {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    const e = new Error("The server is missing ANTHROPIC_API_KEY. Add it in Vercel (Settings → Environment Variables) or in your local .env file.");
+  const apiKey = process.env.ANTHROPIC_API_KEY || process.env.ANTHROPIC_KEY;
+  if (!apiKey) {
+    const where = process.env.VERCEL_ENV ? ` in Vercel's ${process.env.VERCEL_ENV} environment` : "";
+    const e = new Error(`The server can't see ANTHROPIC_API_KEY${where} (missing or empty). Check the exact name, that it has a value, and that Preview is ticked, then redeploy.`);
     e.setup = true;
     throw e;
   }
@@ -207,7 +209,7 @@ export function anthropicLlm() {
   return async ({ system, tools, messages }) => {
     if (!client) {
       const { default: Anthropic } = await import("@anthropic-ai/sdk");
-      client = new Anthropic();
+      client = new Anthropic({ apiKey });
     }
     const res = await client.messages.create({ model, max_tokens: 400, system, tools, messages });
     return { content: res.content.map((b) => (b.type === "text" ? { type: "text", text: b.text } : b.type === "tool_use" ? { type: "tool_use", id: b.id, name: b.name, input: b.input } : null)).filter(Boolean) };
