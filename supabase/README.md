@@ -7,7 +7,8 @@ A pretend Access-A-Ride dispatch system for the Ride Assure demo. **Everything i
 1. In your Supabase project, open **SQL Editor → New query**.
 2. Paste all of `schema.sql` and click **Run**. Do this once.
 3. Open a new query, paste all of `seed.sql`, and click **Run**. You can re-run this any time to reset the demo data.
-4. Check **Table Editor**: you should see 20 customers, 4 vendors, 60 vans, 72 drivers, about 290 trips, and 120 runs.
+4. **Optional, recommended:** paste all of `reset_demo.sql` and click **Run**. It refreshes the demo data with today's dates every night at 4 am New York time, so you never have to re-run the seed. (To refresh by hand any time: `select reset_demo();`)
+5. Check **Table Editor**: you should see 20 customers, 4 vendors, 60 vans, 72 drivers, about 290 trips, and 120 runs.
 
 ## What's in it
 
