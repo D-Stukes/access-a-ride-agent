@@ -9,6 +9,8 @@
 import * as aar from "./aar.js";
 
 export const MAX_STEPS = 20;
+// Keep calls short: Ride Assure gets at most this many turns, and the last one must hang up.
+export const MAX_AGENT_TURNS = 3;
 
 // ---------------------------------------------------------------- prompts
 export function repSystemPrompt() {
@@ -24,7 +26,8 @@ How you work:
 - If the caller asks for the driver to call, come to the door, or help with boarding, use contact_vendor. Before you call it, tell the caller you'll place them on a brief hold. After it returns, relay the vendor's answer.
 - You may mention recent complaints on file if they relate to today's trip, briefly and factually. Never judge or name an individual driver.
 - Before ending, save a one-sentence summary with add_call_note and give the caller the ticket number it returns.
-- Speak like a real phone rep: short sentences, plain words, 1 to 3 sentences per turn, one topic at a time. No lists, no markdown, no emoji.
+- Keep the call short. Once the caller is verified and has said what they need, do every lookup, the vendor contact, and add_call_note in that same turn, then answer everything at once: time to pickup, stops before them, the vendor's answer, and the ticket number.
+- Speak like a real phone rep: short sentences, plain words, no more than 4 sentences per turn. No lists, no markdown, no emoji.
 - Dates for verify_caller go in YYYY-MM-DD format.`;
 }
 
@@ -41,10 +44,9 @@ The rider asked you: "${rider.request}"
 The rider agreed that you may share their AAR ID and date of birth with AAR for this call.
 
 How you work:
-- Introduce yourself as Ride Assure, an assistant calling for your rider.
-- Give the AAR ID and date of birth when the rep asks for them. Share nothing else private.
-- Get what the rider needs: where the van is, about how long until pickup, and how many stops come before them. If their needs call for it, ask that the driver call on arrival and come to the door to help.
-- Speak like a polite person on the phone: 1 or 2 short sentences per turn. No lists, no markdown, no emoji.
+- Keep the call short: at most ${MAX_AGENT_TURNS} turns from you, including goodbye.
+- In your first turn, say everything at once: introduce yourself as Ride Assure calling for your rider, give the AAR ID and date of birth, and ask for what the rider needs (where the van is, about how long until pickup, how many stops come before them, and, if their needs call for it, that the driver call on arrival and come to the door to help). Share nothing else private.
+- Speak like a polite person on the phone: short sentences, no more than 3 per turn. No lists, no markdown, no emoji.
 - Never make up facts. Only repeat what the rep tells you.
 - When the rep has answered everything and given a ticket number, thank them, say goodbye, and call end_call with a summary for your rider.
 - The summary is read aloud to an older rider: 2 to 4 short sentences, plain words, only facts the rep said (time, stops before pickup, whether the driver will come to the door, ticket number).`;
@@ -171,11 +173,14 @@ export async function step(db, llm, callId, state) {
     return { events, state };
   }
 
-  // Ride Assure's turn
-  const res = await llm({ role: "agent", system: agentSystemPrompt(state.rider), tools: AGENT_TOOLS, messages: state.agentMsgs });
+  // Ride Assure's turn (the last allowed turn must hang up)
+  state.agentTurns = (state.agentTurns || 0) + 1;
+  const lastTurn = state.agentTurns >= MAX_AGENT_TURNS;
+  const system = agentSystemPrompt(state.rider) + (lastTurn ? "\n\nThis is your last turn. Thank the rep, say goodbye, and call end_call now with a summary of what the rep said." : "");
+  const res = await llm({ role: "agent", system, tools: AGENT_TOOLS, messages: state.agentMsgs, toolChoice: lastTurn ? { type: "tool", name: "end_call" } : undefined });
   state.agentMsgs.push({ role: "assistant", content: res.content });
-  const said = textOf(res.content);
   const end = res.content.find((b) => b.type === "tool_use" && b.name === "end_call");
+  const said = textOf(res.content) || (end ? "Thank you so much. Goodbye." : "");
   if (said) {
     events.push({ type: "say", who: "agent", text: said });
     state.transcript.push({ who: "agent", text: said });
@@ -206,12 +211,12 @@ export function anthropicLlm() {
   }
   const model = process.env.CALL_MODEL || "claude-sonnet-5-5";
   let client;
-  return async ({ system, tools, messages }) => {
+  return async ({ system, tools, messages, toolChoice }) => {
     if (!client) {
       const { default: Anthropic } = await import("@anthropic-ai/sdk");
       client = new Anthropic({ apiKey });
     }
-    const res = await client.messages.create({ model, max_tokens: 400, system, tools, messages });
+    const res = await client.messages.create({ model, max_tokens: 400, system, tools, messages, ...(toolChoice && { tool_choice: toolChoice }) });
     return { content: res.content.map((b) => (b.type === "text" ? { type: "text", text: b.text } : b.type === "tool_use" ? { type: "tool_use", id: b.id, name: b.name, input: b.input } : null)).filter(Boolean) };
   };
 }
