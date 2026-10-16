@@ -107,6 +107,14 @@
   .error{background:#FEF3F2;border:1px solid #FDA29B;color:#912018;border-radius:12px;padding:10px 14px;font-size:15px}
   .passcode{display:flex;gap:8px;padding:12px 18px;border-top:1px solid var(--line)}
   .passcode input{flex:1;font:inherit;padding:8px 12px;border:1px solid var(--line);border-radius:10px}
+  .listening{display:flex;align-items:center;gap:8px;font-size:15px;color:#b42318;font-weight:700}
+  .listening i{width:10px;height:10px;border-radius:50%;background:#d92d20;animation:pulse 1s infinite}
+  .start{position:fixed;inset:0;background:rgba(14,23,38,.72);display:grid;place-items:center;z-index:10;padding:16px}
+  .start-card{background:#fff;border-radius:22px;padding:28px;max-width:440px;text-align:center;box-shadow:0 30px 60px rgba(0,0,0,.35)}
+  .start-card h2{font-size:26px;margin-bottom:8px}
+  .start-card p{color:var(--text-2);margin:0 0 18px}
+  .start-card .btn{font-size:20px;padding:14px 26px}
+  .start-card .link{background:none;border:0;color:var(--teal);text-decoration:underline;margin-top:12px;font-size:15px}
   footer{font-size:13px;color:var(--text-2);text-align:center;padding:4px 16px 20px}
   @keyframes in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:none}}
   @keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
@@ -138,6 +146,7 @@
     </div>
     <div class="chat" id="chat" aria-live="polite"></div>
     <div class="compose">
+      <div class="listening" id="listenHint" hidden><i></i><span id="listenText">Listening… just talk</span></div>
       <button class="suggest" id="suggestBtn" type="button">“Where's my ride? Can the driver come to my door?”</button>
       <form class="row" id="askForm">
         <label class="sr-only" for="ask">Ask Ride Assure</label>
@@ -176,6 +185,15 @@
 </main>
 <footer>Everything here is made up for a class demo: riders, AAR IDs, vendors, vans, and the AAR rep. Not affiliated with the MTA or Access-A-Ride.</footer>
 
+<div class="start" id="startOverlay">
+  <div class="start-card">
+    <h2>Talk to Ride Assure</h2>
+    <p>Tap once to turn on your microphone and sound. After that, just talk. Ride Assure listens for your question, and for "yes" or "no."</p>
+    <button class="btn primary" id="startVoice" type="button">Tap to start talking</button><br>
+    <button class="link" id="startNoVoice" type="button">Use buttons instead</button>
+  </div>
+</div>
+
 <audio id="holdMusic" src="assets/music/jazz-rainy-lounge.mp3" preload="none" loop></audio>
 
 <script>
@@ -205,7 +223,7 @@
       b.innerHTML = `<span class="avatar" style="background:${p.color}">${p.firstName[0]}${p.lastName[0]}</span>
         <span><b>${p.firstName} ${p.lastName}</b><small>${p.helper ? `${p.helper.split(" ")[0]} is asking for her` : "Asking for herself"}</small></span>`;
       if (p.key === "marcus") b.querySelector("small").textContent = "Asking for himself";
-      b.onclick = () => { if (!busy) { persona = p; renderPersonas(); resetChat(); } };
+      b.onclick = () => { if (!busy) { stopListening(); persona = p; renderPersonas(); resetChat(); listenForRequest(); } };
       $("personas").appendChild(b);
     }
     $("notes").innerHTML = `
@@ -283,31 +301,101 @@
     $("chat").appendChild(choices); $("chat").scrollTop = $("chat").scrollHeight;
     const [yes, no] = choices.querySelectorAll("button");
     yes.focus();
-    no.onclick = async () => {
-      choices.remove(); bubble("No", "me");
+    // The rider can tap a button OR just say yes / no.
+    const decision = await new Promise((resolve) => {
+      let done = false;
+      const pick = (d) => { if (!done) { done = true; stopListening(); resolve(d); } };
+      yes.onclick = () => pick("yes");
+      no.onclick = () => pick("no");
+      (async () => {
+        for (let tries = 0; tries < 4 && handsFree && !done; tries++) {
+          const heard = await listen("Listening… say yes or no");
+          if (done) return;
+          const d = yesOrNo(heard);
+          if (d) { bubble(heard, "me"); return pick(d); }
+          if (heard) await raSays("Sorry, I didn't catch that. Please say yes or no.");
+        }
+      })();
+    });
+    choices.remove();
+    if (decision === "no") {
+      if (!$("chat").lastElementChild?.classList.contains("me")) bubble("No", "me");
       await raSays("Okay, I won't share it, so I can't call for you. You can call Access-A-Ride at 877-337-2017.");
-      busy = false; setComposer(true);
-    };
-    yes.onclick = async () => {
-      choices.remove(); bubble("Yes, share it", "me");
+    } else {
+      if (!$("chat").lastElementChild?.classList.contains("me")) bubble("Yes, share it", "me");
       await raSays("Thank you. Calling Access-A-Ride now. You can watch and listen to the call.");
       await runCall(text);
-      busy = false; setComposer(true);
-    };
+    }
+    busy = false; setComposer(true);
+    listenForRequest();
   }
-  $("suggestBtn").onclick = () => handleRequest("Where's my ride? Can the driver come to my door?");
-  $("askForm").onsubmit = (e) => { e.preventDefault(); const t = $("ask").value; $("ask").value = ""; handleRequest(t); };
 
-  // optional: speak the request
+  function yesOrNo(t) {
+    const s = String(t || "").toLowerCase();
+    if (/\b(no|nope|don't|do not|stop|cancel)\b/.test(s)) return "no";
+    if (/\b(yes|yeah|yep|yup|sure|okay|ok|go ahead|please|share|correct|alright|all right)\b/.test(s)) return "yes";
+    return null;
+  }
+  $("suggestBtn").onclick = () => { stopListening(); handleRequest("Where's my ride? Can the driver come to my door?"); };
+  $("askForm").onsubmit = (e) => { e.preventDefault(); stopListening(); const t = $("ask").value; $("ask").value = ""; handleRequest(t); };
+
+  // ---------------------------------------------------------------- hands-free voice
+  // Browsers need one tap before a page may use the mic or speak, so the start screen asks
+  // for that tap once. After it, Ride Assure listens on its own whenever it's the rider's turn.
   const Rec = window.SpeechRecognition || window.webkitSpeechRecognition;
+  let handsFree = false;
+  let rec = null;
+  function setListening(on, label) {
+    $("micBtn").setAttribute("aria-pressed", String(on));
+    $("listenHint").hidden = !on;
+    if (label) $("listenText").textContent = label;
+  }
+  function stopListening() {
+    if (rec) { const r = rec; rec = null; try { r.abort(); } catch {} }
+    setListening(false);
+  }
+  // Listen once. Resolves with what was heard, or null (silence, error, or hands-free off).
+  function listen(label = "Listening… just talk") {
+    return new Promise((resolve) => {
+      if (!Rec || !handsFree) return resolve(null);
+      stopListening();
+      const r = new Rec(); rec = r;
+      r.lang = "en-US"; r.interimResults = false; r.maxAlternatives = 1;
+      let heard = null;
+      r.onresult = (e) => { heard = e.results[0][0].transcript; };
+      r.onerror = (e) => {
+        if (e.error === "not-allowed" || e.error === "service-not-allowed") {
+          handsFree = false;
+          bubble("I can't use the microphone. Allow it in the browser's address bar, or use the buttons.", "ra");
+        }
+      };
+      r.onend = () => { if (rec === r) { rec = null; setListening(false); } resolve(heard); };
+      setListening(true, label);
+      try { r.start(); } catch { resolve(null); }
+    });
+  }
+  async function listenForRequest() {
+    while (handsFree && !busy) {
+      const heard = await listen();
+      if (!handsFree || busy) return;
+      if (heard && heard.trim()) return handleRequest(heard);
+    }
+  }
+  function startHandsFree() {
+    $("startOverlay").hidden = true;
+    if (!Rec) { bubble("This browser can't listen. Please use Chrome, or use the buttons.", "ra"); return; }
+    handsFree = true;
+    // unlock speech with this tap (some browsers stay silent otherwise)
+    if ("speechSynthesis" in window) { const u = new SpeechSynthesisUtterance(" "); u.volume = 0; speechSynthesis.speak(u); }
+    listenForRequest();
+  }
+  $("startVoice").onclick = startHandsFree;
+  $("startNoVoice").onclick = () => { $("startOverlay").hidden = true; };
   if (Rec) {
     $("micBtn").hidden = false;
     $("micBtn").onclick = () => {
-      const r = new Rec(); r.lang = "en-US"; r.interimResults = false;
-      $("micBtn").setAttribute("aria-pressed", "true");
-      r.onresult = (e) => { const t = e.results[0][0].transcript; $("ask").value = t; };
-      r.onend = () => { $("micBtn").setAttribute("aria-pressed", "false"); if ($("ask").value) $("askForm").requestSubmit(); };
-      r.start();
+      if (handsFree) { handsFree = false; stopListening(); }
+      else { handsFree = true; listenForRequest(); }
     };
   }
 
