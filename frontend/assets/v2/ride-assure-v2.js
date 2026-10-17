@@ -197,7 +197,7 @@
     });
   }
   function micTrouble(error) {
-    if (error === "not-allowed" || error === "service-not-allowed") return "The microphone is blocked. Tap Yes or No.";
+    if (error === "not-allowed" || error === "service-not-allowed") return "Chrome has the microphone blocked for this site. Tap the icon left of the web address, set Microphone to Allow, then reload. Or just tap Yes or No.";
     if (error === "audio-capture") return "I can't find a microphone. Tap Yes or No.";
     if (error === "network") return "Voice needs the internet right now. Tap Yes or No.";
     if (error === "unsupported" || error === "start-failed") return "Voice is not available here. Tap Yes or No.";
@@ -339,7 +339,7 @@
           const { heard, error } = await listenOnce();
           if (!live()) return;
           const trouble = micTrouble(error);
-          if (trouble) { q(".v2-heard").textContent = trouble; againRow.hidden = false; return; }
+          if (trouble) { q(".v2-heard").textContent = trouble; againRow.hidden = false; speakAs("I can't hear you, so please tap Yes or No.", "agent"); return; }
           const d = yesOrNo(heard);
           if (d) { if (d === "yes") unlockHold(me); return pick(d); }
           misses++;
@@ -378,7 +378,21 @@
           if (heard && yesOrNo(heard) === "yes") { clearInterval(tick); unlockHold(me); return pick("yes"); }
         }
       };
-      again.onclick = () => { try { if (me.rec) me.rec.abort(); } catch (e) {} hush(); voiceLoop(reask); };
+      again.onclick = async () => {
+        try { if (me.rec) me.rec.abort(); } catch (e) {} hush();
+        // Ask Chrome for the microphone first, so the Allow prompt appears if it is able to.
+        try {
+          if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+            const st = await navigator.mediaDevices.getUserMedia({ audio: true });
+            st.getTracks().forEach((t) => t.stop());
+          }
+        } catch (e) {
+          q(".v2-heard").textContent = micTrouble("not-allowed");
+          speakAs("I can't hear you because the microphone is blocked. Please tap Yes or No.", "agent");
+          return;
+        }
+        voiceLoop(reask);
+      };
       voiceLoop(ask);
     });
     if (!alive()) return;
@@ -395,6 +409,7 @@
     q(".agent-line").textContent = "Thank you. Calling Access-A-Ride now. You can watch and listen to the call.";
     await speakAs("Thank you. Calling Access-A-Ride now.", "agent");
     if (!alive()) return;
+    gapOn(me);   // music starts right after the agent says it is connecting
     lightPipe(2);
     status.textContent = "Calling…"; avatar.classList.add("ringing");
     let started;
@@ -413,15 +428,18 @@
     updateTripStrip(phone, started.trip, "On the way");
 
     // 3) the conversation, one step at a time
-    me.hangup = () => { hush(); if (me.music) { try { me.music.pause(); } catch (e) {} } if (me.endHold) me.endHold(); };
+    me.hangup = () => { hush(); if (me.music) { try { me.music.pause(); } catch (e) {} } if (me.holdAudio && !me.holdSheet) { try { me.holdAudio.pause(); } catch (e) {} } if (me.endHold) me.endHold(); };
     let state = started.state;
     try {
       for (let n = 0; n < 24 && !state.done && !hungUp && alive(); n++) {
+        gapOn(me);
         const out = await api({ action: "step", callId: started.callId, ticket: started.ticket, state });
         state = out.state;
+        if (!out.events.some((e) => e.type === "hold")) await gapOff(me);   // a hold screen takes over the same music
         for (const e of out.events) {
           if (hungUp || !alive()) break;
           if (e.type === "say") {
+            await gapOff(me);
             addLine(log, e.who, maskPII(e.text));
             await speakAs(e.speak || maskPII(e.text), e.who);
           } else if (e.type === "note") {
@@ -508,10 +526,26 @@
     a.volume = 0; a.play().then(() => { a.pause(); a.currentTime = 0; }).catch(() => {});
   }
   // On hold: smooth jazz plays, and the rider can switch music or play a game until Marisol is back
+  // Music in the quiet moments (while the call connects and while the AI is thinking). It fades out
+  // before anyone speaks, and carries straight on into the hold screen without restarting.
+  function gapOn(me) {
+    try {
+      if (MUTED || !me.holdAudio || me.holdSheet) return;
+      const a = me.holdAudio; a.loop = true; a.volume = 0.35;
+      a.play().catch(() => {});
+    } catch (e) {}
+  }
+  async function gapOff(me) {
+    try {
+      const a = me.holdAudio; if (!a || me.holdSheet || a.paused) return;
+      for (let v = a.volume; v > 0.03; v -= 0.08) { a.volume = Math.max(0, v); await sleep(30); }
+      a.pause();
+    } catch (e) {}
+  }
   async function playHold(me, phone, alive) {
     const a = me.holdAudio || new Audio(HOLD_FILE);
     me.music = a; a.loop = true; a.volume = 0.7;
-    try { a.currentTime = 0; } catch (e) {}
+    if (a.paused) { try { a.currentTime = 0; } catch (e) {} }   // already playing from the wait before? keep going
     hush();
     a.play().catch((err) => console.warn("[Ride Assure v2] hold music blocked:", err.message));
     const sheet = buildSheet(phone, "hold", a);
@@ -569,7 +603,17 @@
         sent.hidden = false; txt.disabled = true;
         speakAs("I sent that to your phone.", "agent");
       };
-      acts.append(rep, txt); box.append(acts, sent);
+      const vr = $make("button", "v2-act", "\u24D8 Vendor report"); vr.type = "button";
+      const vrp = $make("div", "v2-vendor-report"); vrp.hidden = true;
+      vrp.innerHTML = "<b>Your vendor, this month</b> <small>(sample numbers for this demo)</small>" +
+        '<p class="ri-sub">Doing well</p><ul class="ri-good"><li>41 of 45 pickups on time</li><li>43 of 45 drivers called out and assisted</li><li>44 of 45 drivers waited the full time</li></ul>' +
+        '<p class="ri-sub">Room to improve</p><ul class="ri-gap"><li>4 late pickups</li><li>2 times a driver did not assist</li><li>1 driver left early</li></ul>';
+      vr.onclick = () => {
+        const show = vrp.hidden; vrp.hidden = !show;
+        if (show) speakAs("Here is your vendor's record this month, using sample numbers. Doing well: 41 of 45 pickups on time, 43 of 45 drivers called out and assisted, and 44 of 45 waited the full time. Room to improve: 4 late pickups, 2 times a driver did not assist, and 1 driver left early.", "agent");
+        else hush();
+      };
+      acts.append(rep, txt, vr); box.append(acts, sent, vrp);
     }
     if (a.wait && COMPLAINT[key]) {
       const row = $make("div", "app-row");
