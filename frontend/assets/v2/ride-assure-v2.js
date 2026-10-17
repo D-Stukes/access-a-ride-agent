@@ -390,7 +390,7 @@
 
   // Read a ticket number digit by digit ("T-92344" -> "T, 9, 2, 3, 4, 4") so it is easy to follow.
   function spokenTicket(text) {
-    return String(text || "").replace(/\bT-(\d+)/g, (m, d) => "ticket number T, " + d.split("").join(", "));
+    return String(text || "").replace(/\bT-(\d+)/g, (m, d) => "T, " + d.split("").join(", "));
   }
 
   function addLine(log, who, text) {
