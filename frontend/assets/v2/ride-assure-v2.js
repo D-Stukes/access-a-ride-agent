@@ -50,6 +50,28 @@
     if (MUTED) { hush(); document.querySelectorAll("audio").forEach((a) => { try { a.pause(); } catch (e) {} }); }
     applyMuteUI();
   }
+  // The older read-aloud helper (AAR links, complaint list) respects Mute too.
+  (function () {
+    const orig = window.aarSpeak;
+    if (typeof orig !== "function" || orig.__raMute) return;
+    const wrapped = function () { if (MUTED) return; return orig.apply(this, arguments); };
+    wrapped.__raMute = true; window.aarSpeak = wrapped;
+  })();
+  // A Mute button on every page that opens from AAR Links (the list, each link page, the complaint list).
+  function addSubscreenMute(root) {
+    if (!(root instanceof Element)) return;
+    const screens = root.matches(".links-ui, .browser-ui") ? [root] : [...root.querySelectorAll(".links-ui, .browser-ui")];
+    screens.forEach((ui) => {
+      if (ui.querySelector(".v2-mute")) return;
+      const bar = ui.querySelector(".br-bar, .links-top"); if (!bar) return;
+      const b = document.createElement("button"); b.type = "button"; b.className = "v2-mute v2-mute-sm";
+      b.onclick = () => toggleMute();
+      const back = bar.querySelector(".links-back, .rec-back");
+      if (back) bar.insertBefore(b, back); else bar.appendChild(b);
+      applyMuteUI();
+    });
+  }
+  new MutationObserver((muts) => muts.forEach((m) => m.addedNodes.forEach(addSubscreenMute))).observe(document.body, { childList: true, subtree: true });
   // Music / Game / Mute row. Music and Game are independent on/off switches that open their own
   // panel right under the row; Mute is global. `owner` keeps the music player for that screen.
   function wireQuick(root, owner) {

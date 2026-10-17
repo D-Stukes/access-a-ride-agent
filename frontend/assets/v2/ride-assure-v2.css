@@ -122,3 +122,17 @@
 .v2-act:hover{background:#E8F5F5}
 .v2-act:disabled{opacity:.6;cursor:default}
 .v2-sent{margin:8px 0 0;font-weight:700;font-size:14px;color:#0B6B3A}
+
+/* Mute on AAR link pages */
+.v2-mute-sm{flex:0 0 auto;padding:6px 10px;font-size:14px;border-radius:12px;min-height:40px}
+.br-bar .v2-mute-sm{margin-left:auto}
+/* Vendor record: an info button, not an always-on summary */
+.rec-info{align-self:flex-start;margin:6px 0 0;padding:8px 12px;border-radius:999px;border:2px solid #98A2B3;background:#fff;color:#101828;font-family:inherit;font-weight:700;font-size:14px;cursor:pointer}
+.rec-info[aria-expanded="true"]{background:#EEF4FB;border-color:#2B4F8A}
+.rec-info-panel{margin:8px 0 0;padding:10px 12px;border-radius:12px;background:#F5F8FC;border:1px solid #D0DAE8;font-size:14px;color:#1D2939}
+.rec-info-panel .ri-h{margin:0 0 6px;font-weight:800}
+.rec-info-panel small{font-weight:600;color:#667085}
+.rec-info-panel .ri-sub{margin:8px 0 2px;font-weight:800;font-size:13px;text-transform:uppercase;letter-spacing:.04em;color:#475467}
+.rec-info-panel ul{margin:0;padding-left:18px}
+.rec-info-panel .ri-good li::marker{color:#0B6B3A}
+.rec-info-panel .ri-gap li::marker{color:#B54708}

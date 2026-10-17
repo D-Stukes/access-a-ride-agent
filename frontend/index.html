@@ -599,7 +599,7 @@
   .br-loading i:nth-child(2){animation-delay:.15s}.br-loading i:nth-child(3){animation-delay:.3s}
   @keyframes pulseDot{0%,100%{opacity:.3}50%{opacity:1}}
   .br-title{margin:0;font-size:24px;color:#0E1F45}
-  .br-about{margin:0;font-size:16px;color:#344054}
+  .br-about{display:none}
   .br-open{align-self:flex-start;background:#123A7A;color:#fff;text-decoration:none;font-weight:700;border-radius:999px;padding:12px 20px;
     box-shadow:0 4px 0 #0a2450, 0 8px 16px rgba(10,25,60,.2)}
   .br-open:active{transform:translateY(4px);box-shadow:0 0 0 #0a2450}
@@ -2240,10 +2240,10 @@
       phone: '<svg width="22" height="22" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" fill="#B42318"/></svg>'
     };
     const LINKS = [
-      { key: "portal", title: "MY AAR rider portal", sub: "Check trips and see your van live", href: "https://aar.mta.info/login", speak: "You are opening the My A A R rider portal. When you are done, tap the X at the top to close it and return to your Ride Assure options.", domain: "aar.mta.info", about: "Sign in with your AAR ID to check your trips and see your van on a live map." },
-      { key: "app", title: "MTA app", sub: "Book and track your paratransit trips", href: "https://www.mta.info/apps", speak: "You are opening the M T A app page. When you are done, tap the X at the top to close it and return to your Ride Assure options.", domain: "mta.info", about: "Download the official MTA app to book and track your paratransit trips." },
-      { key: "form", title: "File a complaint online", sub: "Choose “Paratransit (Access-A-Ride)”", href: "https://contact.mta.info/s/customer-feedback", speak: "You are opening the M T A complaint form. Choose Paratransit, Access-A-Ride, as the service. When you are done, tap the X at the top to close it and return to your Ride Assure options.", domain: "contact.mta.info", about: "Tell the MTA what happened. Under MTA service, choose Paratransit (Access-A-Ride).", urgent: true },
-      { key: "phone", title: "Call the complaint line", sub: "877-337-2017, press 6 · Mon–Fri, 9 to 5", href: "tel:+18773372017", speak: "You are calling the paratransit complaint line, 8 7 7, 3 3 7, 2 0 1 7. Press 6 to reach an intake agent. When you are done, hang up to return to your screen options.", urgent: true }
+      { key: "portal", title: "MY AAR rider portal", sub: "Check trips and see your van live", href: "https://aar.mta.info/login", speak: "My A A R rider portal.", domain: "aar.mta.info", about: "Sign in with your AAR ID to check your trips and see your van on a live map." },
+      { key: "app", title: "MTA app", sub: "Book and track your paratransit trips", href: "https://www.mta.info/apps", speak: "M T A app.", domain: "mta.info", about: "Download the official MTA app to book and track your paratransit trips." },
+      { key: "form", title: "File a complaint online", sub: "Choose “Paratransit (Access-A-Ride)”", href: "https://contact.mta.info/s/customer-feedback", speak: "File a complaint online.", domain: "contact.mta.info", about: "Tell the MTA what happened. Under MTA service, choose Paratransit (Access-A-Ride).", urgent: true },
+      { key: "phone", title: "Call the complaint line", sub: "877-337-2017, press 6 · Mon–Fri, 9 to 5", href: "tel:+18773372017", speak: "Call the complaint line.", urgent: true }
     ];
     // In-app browser inside the phone: big X at the top returns to the Ride Assure options
     function openBrowser(phone, linksUi, l){
@@ -2263,18 +2263,17 @@
           <h3 class="br-title"></h3>
           <p class="br-about"></p>
           <a class="br-open" target="_blank" rel="noopener noreferrer">Open the official page</a>
-          <p class="br-note">In the real app, the official page loads right here. In this demo, it opens in a new browser tab. Close that tab to come back.</p>
+          <p class="br-note">In this demo, the official page opens in a new tab.</p>
         </div>`;
       b.querySelector(".br-url span").textContent = l.domain;
       b.querySelector(".br-title").textContent = l.title;
-      b.querySelector(".br-about").textContent = l.about;
       const go = b.querySelector(".br-open"); go.href = l.href;
-      go.addEventListener("click", () => window.aarSpeak("Opening the official page in a new tab. When you are done, close that tab to come back to Ride Assure.", true));
+      go.addEventListener("click", () => window.aarSpeak("Opening the official page.", true));
       const close = () => {
         b.classList.add("closing"); if (linksUi) linksUi.classList.add("closing");
         setTimeout(() => {
           b.remove(); if (linksUi) linksUi.remove();
-          window.aarSpeak("You are back at your Ride Assure options.", true);
+          window.aarSpeak("Back to Ride Assure.", true);
           const first = phone.querySelector(".cmd, .choice[data-choice]"); if (first) first.focus();
         }, 250);
       };
@@ -2352,9 +2351,16 @@
         <div class="rec-slot"></div>
         <p class="rec-h">Saved complaints</p>
         <ul class="rec-list"></ul>
-        <p class="rec-sum"></p>
+        <button type="button" class="rec-info" aria-expanded="false">&#9432; Vendor A record</button>
+        <div class="rec-info-panel" hidden>
+          <p class="ri-h">Vendor A, this month <small>(sample numbers for this demo)</small></p>
+          <p class="ri-sub">Doing well</p>
+          <ul class="ri-good"><li>41 of 45 pickups on time</li><li>43 of 45 drivers called out and assisted</li><li>44 of 45 drivers waited the full time</li></ul>
+          <p class="ri-sub">Room to improve</p>
+          <ul class="ri-gap"><li>4 late pickups</li><li>2 times a driver did not assist</li><li>1 driver left early</li></ul>
+        </div>
         <p class="links-fine">Demo only · sample records</p>`;
-      const opts = ui.querySelector(".rec-opts"), slot = ui.querySelector(".rec-slot"), list = ui.querySelector(".rec-list"), sum = ui.querySelector(".rec-sum");
+      const opts = ui.querySelector(".rec-opts"), slot = ui.querySelector(".rec-slot"), list = ui.querySelector(".rec-list");
       const render = () => {
         list.innerHTML = "";
         saved.forEach((r, i) => {
@@ -2363,8 +2369,6 @@
           li.querySelector("b").textContent = r.date; li.querySelector(".t").textContent = r.text; li.querySelector(".rec-tag").textContent = r.tag;
           list.appendChild(li);
         });
-        const n = (c) => saved.filter(r => r.cls === c).length;
-        sum.textContent = `Vendor A this month: ${n("late")} late, ${n("assist")} no assist, ${n("early")} left early.`;
       };
       render();
       ITEMS.forEach(it => {
@@ -2393,6 +2397,10 @@
       });
       const close = () => { ui.classList.add("closing"); setTimeout(() => { ui.remove(); btn.focus(); }, 250); };
       ui.querySelector(".rec-back").addEventListener("click", close);
+      const infoBtn = ui.querySelector(".rec-info"), infoPanel = ui.querySelector(".rec-info-panel");
+      infoBtn.addEventListener("click", () => {
+        const show = infoPanel.hidden; infoPanel.hidden = !show; infoBtn.setAttribute("aria-expanded", String(show));
+      });
       ui.addEventListener("keydown", (e) => { if (e.key === "Escape") { e.stopPropagation(); close(); } });
       phone.appendChild(ui);
       ui.querySelector(".rec-back").focus();
