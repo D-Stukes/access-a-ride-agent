@@ -44,6 +44,8 @@ Each line is a commit you can look up with `git show <hash>`.
 - Marisol no longer mentions complaints or vendor records. A "Vendor report" button on the answer card shows and speaks a balanced record only when tapped.
 - Removed the "Opening the official page" announcement. (The "Back to Ride Assure" announcement was removed earlier; the live build no longer contains it.)
 
+- The black pickup label no longer shows a made-up 9:30 AM. It starts empty ("Pickup time: ask Ride Assure"), says "checking…" during the call, and then shows the pickup time Marisol gave: `699eff8`.
+
 ## App Notes
 - New nav link and page with How It Works, Architecture, Safety and The Agent: `c26034d`
 - Wording updated for v2 (no "Week 4" promises): `ca7afbf`
