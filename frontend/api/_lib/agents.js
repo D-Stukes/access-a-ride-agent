@@ -176,13 +176,21 @@ export async function step(db, llm, callId, state) {
   // Ride Assure's turn (the last allowed turn must hang up)
   state.agentTurns = (state.agentTurns || 0) + 1;
   const lastTurn = state.agentTurns >= MAX_AGENT_TURNS;
+  const firstTurn = state.agentTurns === 1;
   const system = agentSystemPrompt(state.rider) + (lastTurn ? "\n\nThis is your last turn. Thank the rep, say goodbye, and call end_call now with a summary of what the rep said." : "");
   const res = await llm({ role: "agent", system, tools: AGENT_TOOLS, messages: state.agentMsgs, toolChoice: lastTurn ? { type: "tool", name: "end_call" } : undefined });
   state.agentMsgs.push({ role: "assistant", content: res.content });
   const end = res.content.find((b) => b.type === "tool_use" && b.name === "end_call");
   const said = textOf(res.content) || (end ? "Thank you so much. Goodbye." : "");
   if (said) {
-    events.push({ type: "say", who: "agent", text: said });
+    // Privacy: this first turn states the rider's AAR ID and date of birth so the simulated
+    // rep can verify the caller. That is text the two AI roles exchange, not something to
+    // say out loud or show in the open. The rider-facing UI gets a safe stand-in line instead;
+    // the real text above still goes to the rep so verification keeps working.
+    const privacySpeak = firstTurn
+      ? `${state.rider.firstName}, please hold while I give the Access-A-Ride agent your information.`
+      : undefined;
+    events.push({ type: "say", who: "agent", text: said, ...(privacySpeak ? { speak: privacySpeak } : {}) });
     state.transcript.push({ who: "agent", text: said });
   }
   if (end) {

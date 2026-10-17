@@ -13,6 +13,19 @@
   const AAR_NUMBER = "877-337-2017";
   // Ms. R on the phone is Rosa Tavares, a demo rider in the simulated AAR database.
   const RIDER = { firstName: "Rosa", lastName: "Tavares", aarId: "100234", dob: "1948-03-14", needs: "Wheelchair; needs door-to-door help" };
+  RIDER.dobSpoken = new Date(RIDER.dob + "T12:00:00Z").toLocaleDateString("en-US", { month: "long", day: "numeric", year: "numeric", timeZone: "UTC" });
+  // Privacy: the AAR ID and date of birth travel in plain text between the two AI roles so the
+  // simulated rep can verify the caller, but neither should be shown on screen or read aloud
+  // where a presentation audience could see or hear them. This masks both forms wherever we
+  // render a "say" event, independent of the privacySpeak stand-in the server sends for turn 1.
+  function maskPII(text) {
+    if (!text) return text;
+    let out = text;
+    if (RIDER.aarId) out = out.split(RIDER.aarId).join("[AAR ID hidden]");
+    if (RIDER.dobSpoken) out = out.split(RIDER.dobSpoken).join("[date of birth hidden]");
+    if (RIDER.dob) out = out.split(RIDER.dob).join("[date of birth hidden]");
+    return out;
+  }
   const LIVE_KEYS = new Set(["where", "late", "remind", "missed", "wait"]);
   const COMPLAINT = {
     late: { text: "Harborlight Mobility · late pickup", tag: "Late", cls: "late" },
@@ -236,8 +249,8 @@
         for (const e of out.events) {
           if (hungUp || !alive()) break;
           if (e.type === "say") {
-            addLine(log, e.who, e.text);
-            await speakAs(e.text, e.who);
+            addLine(log, e.who, maskPII(e.text));
+            await speakAs(e.speak || maskPII(e.text), e.who);
           } else if (e.type === "note") {
             addChip(log, e.text, /^Caller verified/.test(e.text));
           } else if (e.type === "hold") {
