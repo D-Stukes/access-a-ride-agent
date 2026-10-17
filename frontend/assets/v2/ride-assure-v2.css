@@ -115,3 +115,10 @@
 #demos.head-gone .demo-head{max-height:0}
 @media (max-width:640px){.v2-flag{font-size:13px;border-radius:16px;padding:8px 12px}}
 .v2-flag{display:flex;width:fit-content;max-width:min(860px,100%);border-radius:18px}
+
+/* answer card: Repeat and Text me this */
+.v2-answer-actions{display:flex;gap:8px;margin:10px 0 2px;flex-wrap:wrap}
+.v2-act{flex:1 1 120px;min-height:44px;padding:8px 10px;border-radius:12px;border:2px solid #0F6E74;background:#fff;color:#0B4F54;font-weight:700;font-size:15px;font-family:inherit;cursor:pointer}
+.v2-act:hover{background:#E8F5F5}
+.v2-act:disabled{opacity:.6;cursor:default}
+.v2-sent{margin:8px 0 0;font-weight:700;font-size:14px;color:#0B6B3A}

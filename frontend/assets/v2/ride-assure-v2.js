@@ -381,11 +381,16 @@
         if (ui.parentNode) ui.remove();
         btn.classList.remove("speaking");
         showAnswer(phone, a, key);
-        const said = a.speak ? speakAs(a.summary || [a.big, a.sub].join(" "), "agent") : Promise.resolve();
+        const said = a.speak ? speakAs(spokenTicket(a.summary || [a.big, a.sub].join(" ")), "agent") : Promise.resolve();
         if (a.wait) said.then(resumeWait);   // the countdown starts once the answer has been read
         run = null;
       }, 300);
     }
+  }
+
+  // Read a ticket number digit by digit ("T-92344" -> "T, 9, 2, 3, 4, 4") so it is easy to follow.
+  function spokenTicket(text) {
+    return String(text || "").replace(/\bT-(\d+)/g, (m, d) => "ticket number T, " + d.split("").join(", "));
   }
 
   function addLine(log, who, text) {
@@ -453,6 +458,19 @@
     box.append($make("p", "la-big", a.big));
     if (a.sub) box.append($make("p", "la-sub", a.sub));
     if (a.ticket) box.append($make("span", "v2-ticket", "Ticket " + a.ticket));
+    if (a.summary || a.big) {
+      const acts = $make("div", "v2-answer-actions");
+      const rep = $make("button", "v2-act", "\u{1F501} Repeat"); rep.type = "button";
+      const txt = $make("button", "v2-act", "\u{1F4AC} Text me this"); txt.type = "button";
+      const sent = $make("p", "v2-sent"); sent.hidden = true;
+      rep.onclick = () => { hush(); speakAs(spokenTicket(a.summary || [a.big, a.sub].join(" ")), "agent"); };
+      txt.onclick = () => {
+        sent.textContent = "\u2713 Sent to the phone number on file (simulated)" + (a.ticket ? ". Ticket " + a.ticket + "." : ".");
+        sent.hidden = false; txt.disabled = true;
+        speakAs("I sent that to your phone.", "agent");
+      };
+      acts.append(rep, txt); box.append(acts, sent);
+    }
     if (a.wait && COMPLAINT[key]) {
       const row = $make("div", "app-row");
       const yes = $make("button", "app-btn solid sm", "Yes, save it"); yes.type = "button";
