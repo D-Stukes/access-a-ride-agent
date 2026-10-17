@@ -38,6 +38,18 @@
 
   let run = null;     // the call in progress
   let wait = null;    // the "While you wait" countdown
+  let MUTED = false;  // silences spoken lines and pauses any playing audio, everywhere
+  function applyMuteUI() {
+    document.querySelectorAll(".v2-mute").forEach((b) => {
+      b.setAttribute("aria-pressed", String(MUTED));
+      b.textContent = MUTED ? "🔇 Unmute" : "🔊 Mute";
+    });
+  }
+  function toggleMute() {
+    MUTED = !MUTED;
+    if (MUTED) { hush(); document.querySelectorAll("audio").forEach((a) => { try { a.pause(); } catch (e) {} }); }
+    applyMuteUI();
+  }
 
   window.aarCallDemo = function (btn, key) {
     if (!LIVE_KEYS.has(key) || window.RA_V1_ONLY) return v1Call(btn, key);
@@ -53,6 +65,7 @@
   }
   function speakAs(text, who) {
     return new Promise((resolve) => {
+      if (MUTED) { resolve(); return; }
       let done = false; const fin = () => { if (!done) { done = true; resolve(); } };
       const backup = 900 + String(text).split(/\s+/).length * 430;
       try {
@@ -170,12 +183,39 @@
       <p class="call-name">Access-A-Ride</p>
       <p class="call-num">${AAR_NUMBER} · simulated line</p>
       <p class="call-status" aria-live="polite"></p>
+      <div class="v2-tabs v2-quickbar" role="group" aria-label="Music, game, and mute controls">
+        <button type="button" class="v2-tab" data-q="music" aria-pressed="false">🎵 Music</button>
+        <button type="button" class="v2-tab" data-q="game" aria-pressed="false">🎮 Game</button>
+        <button type="button" class="v2-tab v2-mute" aria-pressed="false">🔊 Mute</button>
+      </div>
+      <div class="v2-pane v2-quickpane" data-pane="music" hidden></div>
+      <div class="v2-pane v2-quickpane" data-pane="game" hidden></div>
       <div class="call-wave" hidden aria-hidden="true"><i></i><i></i><i></i><i></i><i></i></div>
       <div class="v2-log" hidden aria-live="polite"></div>
       <button class="end-call" type="button" aria-label="End call"><svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><path d="M3 14c5-4.5 13-4.5 18 0l-2 3-4-1.5v-2.2a10 10 0 0 0-6 0v2.2L5 17z" fill="#fff"/></svg></button>
       <p class="end-label">End call</p>`;
     const q = (s) => ui.querySelector(s);
     q(".said").textContent = "“" + said + "”";
+    ui.querySelectorAll('[data-q="music"], [data-q="game"]').forEach((b) => {
+      b.onclick = () => {
+        const kind = b.dataset.q, pane = q(`[data-pane="${kind}"]`);
+        const isOpen = b.getAttribute("aria-pressed") === "true";
+        if (isOpen) {
+          b.setAttribute("aria-pressed", "false"); pane.hidden = true; pane.innerHTML = "";
+          if (kind === "music" && me.quickAudio) { try { me.quickAudio.pause(); } catch (e) {} }
+          return;
+        }
+        b.setAttribute("aria-pressed", "true"); pane.hidden = false;
+        if (kind === "music") {
+          if (!me.quickAudio) { me.quickAudio = new Audio(); me.quickAudio.loop = true; me.quickAudio.volume = 0.6; }
+          buildMusic(pane, me.quickAudio, null);
+        } else {
+          buildGame(pane);
+        }
+      };
+    });
+    q(".v2-mute").onclick = () => toggleMute();
+    applyMuteUI();
     const ask = "I'll call Access-A-Ride for you. May I share your AAR ID and date of birth with them?";
     q(".agent-line").textContent = ask;
     const status = q(".call-status"), avatar = q(".call-avatar"), wave = q(".call-wave"), log = q(".v2-log");
@@ -464,6 +504,7 @@
       <div class="v2-tabs" role="group" aria-label="Choose one">
         <button type="button" class="v2-tab" data-tab="game" aria-pressed="false">\uD83C\uDFAE Play a game</button>
         <button type="button" class="v2-tab" data-tab="music" aria-pressed="false">\uD83C\uDFB5 Listen to music</button>
+        <button type="button" class="v2-mute" aria-pressed="false">\uD83D\uDD0A Mute</button>
       </div>
       <div class="v2-pane" data-pane="pick"><div class="v2-pick"><p class="big">What would you like to do?</p><p>Pick a game or some music. You can switch any time.</p></div></div>
       <div class="v2-pane" data-pane="game" hidden></div>
@@ -477,6 +518,8 @@
     phone.appendChild(s);
     s.querySelector(".v2-x").onclick = () => { s.hidden = true; };
     s.querySelectorAll(".v2-tab").forEach((t) => t.onclick = () => showTab(s, t.dataset.tab));
+    s.querySelector(".v2-mute").onclick = () => toggleMute();
+    applyMuteUI();
     buildGame(s.querySelector('[data-pane="game"]'));
     buildMusic(s.querySelector('[data-pane="music"]'), audio, hold ? "Jazz" : null);
     if (hold) showTab(s, "music");
