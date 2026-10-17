@@ -36,7 +36,7 @@ Each line is a commit you can look up with `git show <hash>`.
 
 ## Less repetition, and "What screen am I on?"
 - Removed the "Back to Ride Assure" announcement every time a rider returns from an AAR link page. Nothing announces screens on its own now.
-- New: ask "What screen am I on?" by voice on the home screen, tap the 📍 button on the AAR pages, or tap the link under the Music/Game/Mute row. It says and shows the current screen: commit in the next entry of `git log`.
+- New: ask "What screen am I on?" by voice on the home screen, tap the 📍 button on the AAR pages, or tap the link under the Music/Game/Mute row. It says and shows the current screen: `07da7e5`.
 
 ## App Notes
 - New nav link and page with How It Works, Architecture, Safety and The Agent: `c26034d`
