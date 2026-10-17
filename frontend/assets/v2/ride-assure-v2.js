@@ -252,6 +252,7 @@
       <p class="who">You asked</p><p class="said"></p>
       <p class="who">Ride Assure</p><p class="agent-line"></p>
       <div class="v2-consent"><button type="button" class="app-btn solid" data-yes>Yes, share it</button><button type="button" class="app-btn line" data-no>No</button></div>
+      <div class="v2-again-row" hidden><button type="button" class="app-btn line v2-again" data-again>\u{1F501} Ask me again</button></div>
       <p class="v2-heard" aria-live="polite"></p>
       <div class="call-avatar" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" fill="#0E1726"/></svg></div>
       <p class="call-name">Access-A-Ride</p>
@@ -288,29 +289,46 @@
       me.hangup = () => pick("hangup");
       q("[data-yes]").onclick = () => { unlockHold(me); pick("yes"); };
       q("[data-no]").onclick = () => pick("no");
-      (async () => {
-        await speakAs(ask, "agent");
-        for (let i = 0; i < 3 && !done && alive(); i++) {
-          q(".v2-heard").textContent = SR ? "Listening… say yes or no" : "";
+      // Voice listening loop. A missed answer never ends the call: Ride Assure says it did not
+      // hear, asks again, and keeps the big buttons (and "Ask me again") on the screen.
+      const reask = "I didn't hear your answer. Would you like me to give Access-A-Ride your AAR ID and date of birth, so I can call for you? Please say yes or no.";
+      const again = q("[data-again]"), againRow = q(".v2-again-row");
+      let loopId = 0;
+      const voiceLoop = async (firstLine) => {
+        const my = ++loopId; let misses = 0;
+        const live = () => !done && alive() && my === loopId;
+        againRow.hidden = true;
+        q(".agent-line").textContent = firstLine;
+        await speakAs(firstLine, "agent");
+        while (live()) {
+          q(".v2-heard").textContent = SR ? "Listening\u2026 say yes or no" : "";
           const { heard, error } = await listenOnce();
-          if (done || !alive()) return;
-          const d = yesOrNo(heard);
+          if (!live()) return;
           const trouble = micTrouble(error);
-          if (trouble) { q(".v2-heard").textContent = trouble; return; }
-          q(".v2-heard").textContent = heard ? "Heard: “" + heard + "”" : "I didn't hear anything. Say yes or no.";
+          if (trouble) { q(".v2-heard").textContent = trouble; againRow.hidden = false; return; }
+          const d = yesOrNo(heard);
           if (d) { if (d === "yes") unlockHold(me); return pick(d); }
+          misses++;
+          if (misses >= 3) {
+            q(".v2-heard").textContent = "I didn't hear your answer. Tap Yes or No, or tap Ask me again.";
+            againRow.hidden = false; return;
+          }
+          q(".v2-heard").textContent = "I didn't hear your answer. Let me ask again.";
+          q(".agent-line").textContent = reask;
+          await speakAs(reask, "agent");
         }
-        if (!done) q(".v2-heard").textContent = "Tap Yes or No.";
-      })();
+      };
+      again.onclick = () => { try { if (me.rec) me.rec.abort(); } catch (e) {} hush(); voiceLoop(reask); };
+      voiceLoop(ask);
     });
     if (!alive()) return;
-    q(".v2-consent").remove(); q(".v2-heard").remove();
+    q(".v2-consent").remove(); q(".v2-heard").remove(); q(".v2-again-row").remove();
 
     if (decision !== "yes") {
-      const msg = decision === "no" ? "Okay, I won't share it, so I can't call for you. You can call Access-A-Ride at 877-337-2017." : "Okay, I didn't call.";
+      const msg = decision === "no" ? "Okay, I won't share it, so I won't make the call. Tap a button any time to try again." : "Okay, I didn't call.";
       q(".agent-line").textContent = msg;
       await speakAs(msg, "agent");
-      return finish({ big: decision === "no" ? "No call was made." : "Call cancelled.", sub: "You can call Access-A-Ride at 877-337-2017.", speak: false });
+      return finish({ big: decision === "no" ? "No call was made." : "Call cancelled.", sub: "Tap a button any time to try again.", speak: false });
     }
 
     // 2) dial, while the server opens the call

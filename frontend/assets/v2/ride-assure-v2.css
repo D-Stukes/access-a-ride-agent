@@ -136,3 +136,6 @@
 .rec-info-panel ul{margin:0;padding-left:18px}
 .rec-info-panel .ri-good li::marker{color:#0B6B3A}
 .rec-info-panel .ri-gap li::marker{color:#B54708}
+
+.v2-again-row{display:flex;justify-content:center;margin:0 0 12px}
+.v2-again-row[hidden]{display:none}
