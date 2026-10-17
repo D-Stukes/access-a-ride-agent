@@ -45,6 +45,7 @@ Each line is a commit you can look up with `git show <hash>`.
 - Removed the "Opening the official page" announcement. (The "Back to Ride Assure" announcement was removed earlier; the live build no longer contains it.)
 
 - The black pickup label no longer shows a made-up 9:30 AM. It starts empty ("Pickup time: ask Ride Assure"), says "checking…" during the call, and then shows the pickup time Marisol gave: `699eff8`.
+- The top greeting now follows New York time of day (morning, afternoon, evening) and names the rider on the call, "Ms. Tavares" instead of a fixed "Good morning, Ms. R": `7925910`.
 
 ## App Notes
 - New nav link and page with How It Works, Architecture, Safety and The Agent: `c26034d`
