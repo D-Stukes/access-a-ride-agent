@@ -589,6 +589,15 @@
     if (first) first.innerHTML = html;
     if (pill) { pill.textContent = pillText || ""; pill.hidden = !pillText; }
   }
+  // Greeting follows the New York time of day and the rider on the call (Rosa Tavares in this demo).
+  function applyGreeting() {
+    let h = 9;
+    try { h = parseInt(new Intl.DateTimeFormat("en-US", { hour: "numeric", hour12: false, timeZone: "America/New_York" }).format(new Date()), 10) % 24; } catch (e) {}
+    const part = h >= 5 && h < 12 ? "morning" : h >= 12 && h < 17 ? "afternoon" : "evening";
+    document.querySelectorAll(".hello").forEach((el) => { el.textContent = "Good " + part + ", Ms. " + RIDER.lastName; });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", applyGreeting); else applyGreeting();
+  setInterval(applyGreeting, 60000);
   function resetStrip() { const ph = document.querySelector("#phone2"); if (ph) setStrip(ph, "<b>Pickup time</b> \u00B7 ask Ride Assure", ""); }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", resetStrip); else resetStrip();
 
