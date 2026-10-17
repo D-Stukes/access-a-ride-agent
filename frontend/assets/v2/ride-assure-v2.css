@@ -69,6 +69,11 @@
 .v2-quickbar{margin:0 0 10px}
 .v2-quickpane{margin:0 0 12px;padding:12px;border-radius:16px;background:rgba(255,255,255,.08)}
 .v2-quickpane[hidden]{display:none}
+/* on the phone's home screen */
+.v2-home-quick{flex:0 0 auto;margin:0 0 8px}
+.v2-home-quick .v2-tabs{margin:0 0 6px}
+.v2-home-quick .v2-tab,.v2-home-quick .v2-mute{padding:8px 6px;font-size:15px}
+.v2-home-quick .v2-quickpane{background:rgba(255,255,255,.94);max-height:250px;overflow-y:auto;margin:0 0 6px}
 .v2-pane{flex:1 1 auto;overflow-y:auto;scrollbar-width:none}
 .v2-pane::-webkit-scrollbar{display:none}
 .v2-pane[hidden]{display:none}

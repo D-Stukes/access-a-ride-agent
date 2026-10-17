@@ -50,6 +50,45 @@
     if (MUTED) { hush(); document.querySelectorAll("audio").forEach((a) => { try { a.pause(); } catch (e) {} }); }
     applyMuteUI();
   }
+  // Music / Game / Mute row. Music and Game are independent on/off switches that open their own
+  // panel right under the row; Mute is global. `owner` keeps the music player for that screen.
+  function wireQuick(root, owner) {
+    root.querySelectorAll('[data-q="music"], [data-q="game"]').forEach((b) => {
+      b.onclick = () => {
+        const kind = b.dataset.q, pane = root.querySelector('[data-pane="' + kind + '"]');
+        if (b.getAttribute("aria-pressed") === "true") {
+          b.setAttribute("aria-pressed", "false"); pane.hidden = true; pane.innerHTML = "";
+          if (kind === "music" && owner.quickAudio) { try { owner.quickAudio.pause(); } catch (e) {} }
+          return;
+        }
+        b.setAttribute("aria-pressed", "true"); pane.hidden = false;
+        if (kind === "music") {
+          if (!owner.quickAudio) { owner.quickAudio = new Audio(); owner.quickAudio.loop = true; owner.quickAudio.volume = 0.6; }
+          buildMusic(pane, owner.quickAudio, null);
+        } else {
+          buildGame(pane);
+        }
+      };
+    });
+    root.querySelector(".v2-mute").onclick = () => toggleMute();
+    applyMuteUI();
+  }
+  // The same row on the phone's home screen, so riders can use it any time, not only during a call
+  const home = {};
+  function addHomeBar() {
+    const list = document.querySelector("#phone2 .opt-list");
+    if (!list || document.querySelector(".v2-home-quick")) return;
+    const box = $make("div", "v2-home-quick");
+    box.innerHTML = '<div class="v2-tabs v2-quickbar" role="group" aria-label="Music, game, and mute controls">' +
+      '<button type="button" class="v2-tab" data-q="music" aria-pressed="false">\uD83C\uDFB5 Music</button>' +
+      '<button type="button" class="v2-tab" data-q="game" aria-pressed="false">\uD83C\uDFAE Game</button>' +
+      '<button type="button" class="v2-tab v2-mute" aria-pressed="false">\uD83D\uDD0A Mute</button></div>' +
+      '<div class="v2-pane v2-quickpane" data-pane="music" hidden></div>' +
+      '<div class="v2-pane v2-quickpane" data-pane="game" hidden></div>';
+    list.parentNode.insertBefore(box, list);
+    wireQuick(box, home);
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", addHomeBar); else addHomeBar();
 
   window.aarCallDemo = function (btn, key) {
     if (!LIVE_KEYS.has(key) || window.RA_V1_ONLY) return v1Call(btn, key);
@@ -163,6 +202,7 @@
 
   async function liveCall(btn, key) {
     cleanup();
+    if (home.quickAudio) { try { home.quickAudio.pause(); } catch (e) {} }
     document.querySelectorAll(".call-ui").forEach((x) => x.remove());   // a v1 call, if one is open
     document.querySelectorAll(".cmd.selected, .choice.selected").forEach((x) => x.classList.remove("selected"));
     btn.classList.add("selected", "speaking"); btn.setAttribute("aria-pressed", "true");
@@ -196,26 +236,7 @@
       <p class="end-label">End call</p>`;
     const q = (s) => ui.querySelector(s);
     q(".said").textContent = "“" + said + "”";
-    ui.querySelectorAll('[data-q="music"], [data-q="game"]').forEach((b) => {
-      b.onclick = () => {
-        const kind = b.dataset.q, pane = q(`[data-pane="${kind}"]`);
-        const isOpen = b.getAttribute("aria-pressed") === "true";
-        if (isOpen) {
-          b.setAttribute("aria-pressed", "false"); pane.hidden = true; pane.innerHTML = "";
-          if (kind === "music" && me.quickAudio) { try { me.quickAudio.pause(); } catch (e) {} }
-          return;
-        }
-        b.setAttribute("aria-pressed", "true"); pane.hidden = false;
-        if (kind === "music") {
-          if (!me.quickAudio) { me.quickAudio = new Audio(); me.quickAudio.loop = true; me.quickAudio.volume = 0.6; }
-          buildMusic(pane, me.quickAudio, null);
-        } else {
-          buildGame(pane);
-        }
-      };
-    });
-    q(".v2-mute").onclick = () => toggleMute();
-    applyMuteUI();
+    wireQuick(ui, me);
     const ask = "I'll call Access-A-Ride for you. May I share your AAR ID and date of birth with them?";
     q(".agent-line").textContent = ask;
     const status = q(".call-status"), avatar = q(".call-avatar"), wave = q(".call-wave"), log = q(".v2-log");
