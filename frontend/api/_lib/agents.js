@@ -221,7 +221,7 @@ export function anthropicLlm() {
   return async ({ system, tools, messages, toolChoice }) => {
     if (!client) {
       const { default: Anthropic } = await import("@anthropic-ai/sdk");
-      client = new Anthropic({ apiKey });
+      client = new Anthropic({ apiKey, maxRetries: 4, timeout: 25000 });   // ride out brief overloads so a call does not drop
     }
     const res = await client.messages.create({ model, max_tokens: 400, system, tools, messages, ...(toolChoice && { tool_choice: toolChoice }) });
     return { content: res.content.map((b) => (b.type === "text" ? { type: "text", text: b.text } : b.type === "tool_use" ? { type: "tool_use", id: b.id, name: b.name, input: b.input } : null)).filter(Boolean) };

@@ -180,11 +180,23 @@
   }
 
   // ------------------------------------------------------------------ server
-  async function api(body) {
-    const res = await fetch("api/call", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-    const data = await res.json().catch(() => ({}));
-    if (!res.ok) throw Object.assign(new Error(data.message || "The call dropped."), { data, status: res.status });
-    return data;
+  async function api(body, tries) {
+    // A call step is safe to repeat (the client holds the state), so a hiccup is retried quietly.
+    const max = body.action === "step" ? 4 : 1;
+    let lastErr;
+    for (let i = 0; i < max; i++) {
+      try {
+        const res = await fetch("api/call", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw Object.assign(new Error(data.message || "The call dropped."), { data, status: res.status });
+        return data;
+      } catch (err) {
+        lastErr = err;
+        if (err.status && err.status < 500) break;       // a real refusal: do not repeat
+        await sleep(700 * (i + 1));
+      }
+    }
+    throw lastErr;
   }
 
   // ------------------------------------------------------------------ the call
