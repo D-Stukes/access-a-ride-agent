@@ -2270,7 +2270,6 @@
       b.querySelector(".br-url span").textContent = l.domain;
       b.querySelector(".br-title").textContent = l.title;
       const go = b.querySelector(".br-open"); go.href = l.href;
-      go.addEventListener("click", () => window.aarSpeak("Opening the official page.", true));
       const close = () => {
         b.classList.add("closing"); if (linksUi) linksUi.classList.add("closing");
         setTimeout(() => {
