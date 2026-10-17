@@ -139,3 +139,7 @@
 
 .v2-again-row{display:flex;justify-content:center;margin:0 0 12px}
 .v2-again-row[hidden]{display:none}
+
+.v2-stop-row{display:flex;justify-content:center;margin:0 0 12px}
+.v2-stop-row[hidden]{display:none}
+.v2-stop{background:#B42318;border-color:#B42318;color:#fff;font-weight:800;font-size:18px;padding:14px 22px;border-radius:14px;min-height:56px}

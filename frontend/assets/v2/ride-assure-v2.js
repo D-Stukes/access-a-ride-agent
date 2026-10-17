@@ -168,6 +168,7 @@
     if (error === "not-allowed" || error === "service-not-allowed") return "The microphone is blocked. Tap Yes or No.";
     if (error === "audio-capture") return "I can't find a microphone. Tap Yes or No.";
     if (error === "network") return "Voice needs the internet right now. Tap Yes or No.";
+    if (error === "unsupported" || error === "start-failed") return "Voice is not available here. Tap Yes or No.";
     return "";
   }
   function yesOrNo(t) {
@@ -252,6 +253,7 @@
       <p class="who">You asked</p><p class="said"></p>
       <p class="who">Ride Assure</p><p class="agent-line"></p>
       <div class="v2-consent"><button type="button" class="app-btn solid" data-yes>Yes, share it</button><button type="button" class="app-btn line" data-no>No</button></div>
+      <div class="v2-stop-row" hidden><button type="button" class="app-btn v2-stop" data-stop>\u270B Stop. Don't connect</button></div>
       <div class="v2-again-row" hidden><button type="button" class="app-btn line v2-again" data-again>\u{1F501} Ask me again</button></div>
       <p class="v2-heard" aria-live="polite"></p>
       <div class="call-avatar" aria-hidden="true"><svg width="40" height="40" viewBox="0 0 24 24"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2z" fill="#0E1726"/></svg></div>
@@ -309,20 +311,46 @@
           const d = yesOrNo(heard);
           if (d) { if (d === "yes") unlockHold(me); return pick(d); }
           misses++;
-          if (misses >= 3) {
-            q(".v2-heard").textContent = "I didn't hear your answer. Tap Yes or No, or tap Ask me again.";
-            againRow.hidden = false; return;
-          }
+          if (misses >= 2) return autoConnect(my);
           q(".v2-heard").textContent = "I didn't hear your answer. Let me ask again.";
           q(".agent-line").textContent = reask;
           await speakAs(reask, "agent");
+        }
+      };
+      // Two missed answers in a row: say clearly that the call will connect on its own,
+      // and keep listening for "stop". Only when the microphone is working (so "stop" can be heard).
+      const stopRow = q(".v2-stop-row"), STOP_RE = /\b(stop|no|nope|don't|do not|cancel|wait|hold on|hang on)\b/i;
+      q("[data-stop]").onclick = () => pick("no");
+      const autoConnect = async (my) => {
+        const live = () => !done && alive() && my === loopId;
+        const line = "I didn't hear an answer. I'll connect you to Access-A-Ride in 10 seconds and share your AAR ID and date of birth, so I can call for you. Say stop, or tap Stop, if you don't want me to.";
+        q(".agent-line").textContent = line;
+        stopRow.hidden = false; againRow.hidden = true;
+        await speakAs(line, "agent");
+        if (!live()) return;
+        const deadline = Date.now() + 10000;
+        const tick = setInterval(() => {
+          if (!live()) { clearInterval(tick); return; }
+          const left = Math.max(0, Math.ceil((deadline - Date.now()) / 1000));
+          q(".v2-heard").textContent = "Connecting in " + left + "\u2026 say stop, or tap Stop, to cancel";
+          if (left <= 0) { clearInterval(tick); unlockHold(me); pick("yes"); }
+        }, 250);
+        while (live() && Date.now() < deadline) {
+          const { heard, error } = await listenOnce();
+          if (!live()) { clearInterval(tick); return; }
+          if (micTrouble(error)) {   // cannot hear "stop", so do not connect on silence
+            clearInterval(tick); stopRow.hidden = true; againRow.hidden = false;
+            q(".v2-heard").textContent = micTrouble(error); return;
+          }
+          if (heard && STOP_RE.test(heard)) { clearInterval(tick); return pick("no"); }
+          if (heard && yesOrNo(heard) === "yes") { clearInterval(tick); unlockHold(me); return pick("yes"); }
         }
       };
       again.onclick = () => { try { if (me.rec) me.rec.abort(); } catch (e) {} hush(); voiceLoop(reask); };
       voiceLoop(ask);
     });
     if (!alive()) return;
-    q(".v2-consent").remove(); q(".v2-heard").remove(); q(".v2-again-row").remove();
+    q(".v2-consent").remove(); q(".v2-heard").remove(); q(".v2-again-row").remove(); q(".v2-stop-row").remove();
 
     if (decision !== "yes") {
       const msg = decision === "no" ? "Okay, I won't share it, so I won't make the call. Tap a button any time to try again." : "Okay, I didn't call.";
