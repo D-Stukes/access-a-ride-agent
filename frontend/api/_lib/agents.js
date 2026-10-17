@@ -177,10 +177,15 @@ export async function step(db, llm, callId, state) {
   const lastTurn = state.agentTurns >= MAX_AGENT_TURNS;
   const firstTurn = state.agentTurns === 1;
   const system = agentSystemPrompt(state.rider) + (lastTurn ? "\n\nThis is your last turn. Thank the rep, say goodbye, and call end_call now with a summary of what the rep said." : "");
-  const res = await llm({ role: "agent", system, tools: AGENT_TOOLS, messages: state.agentMsgs, toolChoice: lastTurn ? { type: "tool", name: "end_call" } : undefined });
+  // This model rejects a forced tool_choice, so on the last turn the only tool offered is end_call.
+  const agentTools = lastTurn ? AGENT_TOOLS.filter((t) => t.name === "end_call") : AGENT_TOOLS;
+  const res = await llm({ role: "agent", system, tools: agentTools, messages: state.agentMsgs });
   state.agentMsgs.push({ role: "assistant", content: res.content });
-  const end = res.content.find((b) => b.type === "tool_use" && b.name === "end_call");
-  const said = textOf(res.content) || (end ? "Thank you so much. Goodbye." : "");
+  let end = res.content.find((b) => b.type === "tool_use" && b.name === "end_call");
+  const spoken = textOf(res.content);
+  // Safety net: if the model only talked on its last turn, hang up with what it said.
+  if (!end && lastTurn) end = { id: "synthetic-end", name: "end_call", input: { summary_for_rider: spoken || "The call is finished." } };
+  const said = spoken || (end ? "Thank you so much. Goodbye." : "");
   if (said) {
     // Privacy: this first turn states the rider's AAR ID and date of birth so the simulated
     // rep can verify the caller. That is text the two AI roles exchange, not something to
@@ -223,7 +228,7 @@ export function anthropicLlm() {
       const { default: Anthropic } = await import("@anthropic-ai/sdk");
       client = new Anthropic({ apiKey, maxRetries: 4, timeout: 25000 });   // ride out brief overloads so a call does not drop
     }
-    const res = await client.messages.create({ model, max_tokens: 400, system, tools, messages, ...(toolChoice && { tool_choice: toolChoice }) });
+    const res = await client.messages.create({ model, max_tokens: 400, system, tools, messages });
     return { content: res.content.map((b) => (b.type === "text" ? { type: "text", text: b.text } : b.type === "tool_use" ? { type: "tool_use", id: b.id, name: b.name, input: b.input } : null)).filter(Boolean) };
   };
 }

@@ -71,5 +71,5 @@ function agentTurn(messages, system, forceEnd) {
 }
 
 export function mockLlm() {
-  return async ({ role, system, messages, toolChoice }) => ({ content: role === "rep" ? repTurn(messages) : agentTurn(messages, system, !!toolChoice) });
+  return async ({ role, system, messages, tools }) => ({ content: role === "rep" ? repTurn(messages) : agentTurn(messages, system, (tools || []).length === 1) });
 }
