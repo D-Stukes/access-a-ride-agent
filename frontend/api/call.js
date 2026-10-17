@@ -63,7 +63,7 @@ export default async function handler(req, res) {
     console.error("[call]", err);
     return res.status(setup ? 500 : 502).json({
       error: setup ? "setup" : "call_failed",
-      message: setup ? err.message : "The call dropped. Please try again.",
+      message: setup ? err.message : "Redialing.",
     });
   }
 }

@@ -133,8 +133,8 @@ export async function step(db, llm, callId, state) {
 
   if (state.steps > MAX_STEPS) {
     state.done = true;
-    events.push({ type: "summary", text: "The call ran long, so I ended it. Please try again, or call AAR at 877-337-2017." });
-    await aar.finishCall(db, callId, { outcome: "ended: too long", transcript: state.transcript });
+    // No "failed call" ending in this demo: the page quietly redials instead.
+    await aar.finishCall(db, callId, { outcome: "redial", transcript: state.transcript });
     return { events, state };
   }
 
