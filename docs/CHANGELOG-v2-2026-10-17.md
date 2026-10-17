@@ -38,6 +38,12 @@ Each line is a commit you can look up with `git show <hash>`.
 - Removed the "Back to Ride Assure" announcement every time a rider returns from an AAR link page. Nothing announces screens on its own now.
 - New: ask "What screen am I on?" by voice on the home screen, tap the 📍 button on the AAR pages, or tap the link under the Music/Game/Mute row. It says and shows the current screen: `07da7e5`.
 
+## Round 3 (from testing with Huma)
+- Microphone: Chrome had the site's microphone set to Denied, so no prompt could appear. The app now explains the Chrome setting on screen and aloud, and Ask me again re-requests the microphone.
+- Hold music starts right after "Calling Access-A-Ride now", plays softly through quiet gaps while the AI is thinking, fades out before anyone speaks, and carries into the hold screen.
+- Marisol no longer mentions complaints or vendor records. A "Vendor report" button on the answer card shows and speaks a balanced record only when tapped.
+- Removed the "Opening the official page" announcement. (The "Back to Ride Assure" announcement was removed earlier; the live build no longer contains it.)
+
 ## App Notes
 - New nav link and page with How It Works, Architecture, Safety and The Agent: `c26034d`
 - Wording updated for v2 (no "Week 4" promises): `ca7afbf`
