@@ -1719,6 +1719,7 @@
     const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
     function match(t){
       t = t.toLowerCase();
+      if (/(what|which) (screen|page)|where am i|where i am/.test(t)) return "screen";
       if (/(caregiver|daughter|son|family)/.test(t)) return "caregiver";
       if (/(few more minutes|more time|please wait|ask .*wait|wait for me)/.test(t)) return "wait";
       if (/(remind|please).*(call|assist|door)/.test(t)) return "remind";
@@ -1740,7 +1741,8 @@
         const heard = e.results[0][0].transcript;
         const key = match(heard);
         stopListening();
-        if (key) { const b = document.querySelector('[data-cmd="' + key + '"]'); b ? b.click() : start(key); }
+        if (key === "screen") { window.aarWhereAmI && window.aarWhereAmI(); }
+        else if (key) { const b = document.querySelector('[data-cmd="' + key + '"]'); b ? b.click() : start(key); }
         else micHint.textContent = "I heard “" + heard + "”. Try one of the commands below.";
       };
       rec.onerror = (e) => {
@@ -2273,7 +2275,6 @@
         b.classList.add("closing"); if (linksUi) linksUi.classList.add("closing");
         setTimeout(() => {
           b.remove(); if (linksUi) linksUi.remove();
-          window.aarSpeak("Back to Ride Assure.", true);
           const first = phone.querySelector(".cmd, .choice[data-choice]"); if (first) first.focus();
         }, 250);
       };

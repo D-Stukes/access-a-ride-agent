@@ -66,7 +66,11 @@
       const bar = ui.querySelector(".br-bar, .links-top"); if (!bar) return;
       const b = document.createElement("button"); b.type = "button"; b.className = "v2-mute v2-mute-sm";
       b.onclick = () => toggleMute();
+      const pin = document.createElement("button"); pin.type = "button"; pin.className = "v2-where-icon";
+      pin.textContent = "\uD83D\uDCCD"; pin.setAttribute("aria-label", "What screen am I on?"); pin.title = "What screen am I on?";
+      pin.onclick = () => window.aarWhereAmI();
       const back = bar.querySelector(".links-back, .rec-back");
+      if (back) bar.insertBefore(pin, back); else bar.appendChild(pin);
       if (back) bar.insertBefore(b, back); else bar.appendChild(b);
       applyMuteUI();
     });
@@ -107,10 +111,38 @@
       '<button type="button" class="v2-tab v2-mute" aria-pressed="false">\uD83D\uDD0A Mute</button></div>' +
       '<div class="v2-pane v2-quickpane" data-pane="music" hidden></div>' +
       '<div class="v2-pane v2-quickpane" data-pane="game" hidden></div>';
+    const where = $make("button", "v2-where", "\uD83D\uDCCD What screen am I on?"); where.type = "button";
+    where.onclick = () => window.aarWhereAmI();
+    box.appendChild(where);
     list.parentNode.insertBefore(box, list);
     wireQuick(box, home);
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", addHomeBar); else addHomeBar();
+
+  // "What screen am I on?" Nothing announces screens on its own; the rider asks when they want to know.
+  function describeScreen() {
+    const phone = document.querySelector("#phone2") || document.querySelector(".phone");
+    if (!phone) return "You are on the Ride Assure home screen.";
+    const vis = (sel) => [...phone.querySelectorAll(sel)].find((el) => !el.hidden && el.offsetParent !== null);
+    const br = vis(".browser-ui");
+    if (br) { const t = (br.querySelector(".br-title") || {}).textContent || "an AAR page"; return "You are on the " + t + " page. Tap the red X at the top to go back."; }
+    if (vis(".record-ui")) return "You are on the Trip Complaint List. Tap Back to return.";
+    if (vis(".links-ui")) return "You are on the AAR Links list. Tap Back to return.";
+    const w = vis(".v2-wait");
+    if (w) { const h = w.getAttribute("aria-label") || "While you wait"; return "You are on the " + h + " screen. Tap Close to return."; }
+    if (vis(".call-ui")) return "You are on the call screen with Access-A-Ride.";
+    return "You are on the Ride Assure home screen.";
+  }
+  window.aarWhereAmI = function () {
+    const text = describeScreen();
+    const phone = document.querySelector("#phone2") || document.querySelector(".phone");
+    if (phone) {
+      phone.querySelectorAll(".v2-where-banner").forEach((x) => x.remove());
+      const b = $make("div", "v2-where-banner", text); b.setAttribute("role", "status");
+      phone.appendChild(b); setTimeout(() => b.remove(), 6000);
+    }
+    if (window.aarSpeak) window.aarSpeak(text, true);
+  };
 
   window.aarCallDemo = function (btn, key) {
     if (!LIVE_KEYS.has(key) || window.RA_V1_ONLY) return v1Call(btn, key);
