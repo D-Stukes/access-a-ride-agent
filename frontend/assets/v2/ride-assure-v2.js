@@ -425,7 +425,7 @@
     ui.classList.add("connected"); log.hidden = false; wave.hidden = false;
     status.textContent = "Connected · Marisol, AAR (simulated)";
     me.trip = started.trip;
-    updateTripStrip(phone, started.trip, "On the way");
+    setStrip(phone, "<b>Pickup time</b> \u00B7 checking\u2026", "On the call");
 
     // 3) the conversation, one step at a time
     me.hangup = () => { hush(); if (me.music) { try { me.music.pause(); } catch (e) {} } if (me.holdAudio && !me.holdSheet) { try { me.holdAudio.pause(); } catch (e) {} } if (me.endHold) me.endHold(); };
@@ -487,6 +487,11 @@
       if (!alive()) return;
       cleanup();
       return v1Call(btn, key);
+    }
+    {   // show the pickup time Marisol actually gave
+      const tm = summary.match(/\b(\d{1,2}:\d{2}\s?[AaPp]\.?[Mm]\.?)/);
+      if (tm) setStrip(phone, "<b>Pickup " + tm[1].replace(/\./g, "").replace(/\s?([AaPp][Mm])/, " $1").toUpperCase() + "</b>" + (started.trip ? " \u00B7 Trip " + started.trip.tripId : ""), "On the way");
+      else setStrip(phone, "<b>Pickup time</b> \u00B7 ask Ride Assure", "");
     }
     const first = summary.match(/^[^.!?]+[.!?]/);
     finish({ big: first ? first[0] : summary, sub: first ? summary.slice(first[0].length).trim() : "", ticket, summary, speak: true, wait: true });
@@ -575,6 +580,17 @@
     }
     sheet.remove(); me.holdSheet = null;
   }
+
+  // The black pickup label. Before a call it is empty of times; during the call it says it is checking;
+  // after the call it shows the pickup time Marisol gave (never a hard-coded one).
+  function setStrip(phone, html, pillText) {
+    const strip = phone.querySelector(".trip-strip"); if (!strip) return;
+    const first = strip.firstElementChild, pill = strip.querySelector(".trip-status");
+    if (first) first.innerHTML = html;
+    if (pill) { pill.textContent = pillText || ""; pill.hidden = !pillText; }
+  }
+  function resetStrip() { const ph = document.querySelector("#phone2"); if (ph) setStrip(ph, "<b>Pickup time</b> \u00B7 ask Ride Assure", ""); }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", resetStrip); else resetStrip();
 
   function updateTripStrip(phone, trip, statusText) {
     const strip = phone.querySelector(".trip-strip"); if (!strip) return;

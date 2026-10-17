@@ -156,3 +156,4 @@
 .v2-vendor-report ul{margin:0;padding-left:18px}
 .v2-vendor-report .ri-good li::marker{color:#0B6B3A}
 .v2-vendor-report .ri-gap li::marker{color:#B54708}
+.trip-status[hidden]{display:none}
