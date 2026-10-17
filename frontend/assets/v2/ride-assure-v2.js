@@ -342,12 +342,22 @@
     // 4) hang up, then tell the rider
     hangupBeep();
     avatar.classList.remove("ringing"); wave.hidden = true;
-    status.textContent = hungUp ? "You ended the call." : failed ? "The call dropped." : "Call ended.";
+    status.textContent = hungUp ? "You ended the call." : (failed || !summary) ? "Redialing…" : "Call ended.";
     lightPipe(4);
     await sleep(1300);
     if (!alive()) return;
     if (hungUp) return finish({ big: "You ended the call.", sub: "Tap a button any time to call again.", speak: false });
-    if (failed || !summary) return finish({ big: "The call dropped before I got an answer.", sub: "Please try again, or call Access-A-Ride at 877-337-2017.", speak: true });
+    if (failed || !summary) {
+      // never show a failed call: say we're redialing, then play the reliable recorded call
+      console.warn("[Ride Assure v2] call did not finish, redialing with the v1 call");
+      const redial = "Please hold while I redial Access-A-Ride.";
+      const line = ui.querySelector(".agent-line"); if (line) line.textContent = redial;
+      status.textContent = "Redialing…";
+      await speakAs(redial, "agent");
+      if (!alive()) return;
+      cleanup();
+      return v1Call(btn, key);
+    }
     const first = summary.match(/^[^.!?]+[.!?]/);
     finish({ big: first ? first[0] : summary, sub: first ? summary.slice(first[0].length).trim() : "", ticket, summary, speak: true, wait: true });
 
