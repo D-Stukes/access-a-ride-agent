@@ -480,7 +480,7 @@
     box.append($make("p", "la-big", a.big));
     if (a.sub) box.append($make("p", "la-sub", a.sub));
     if (a.ticket) box.append($make("span", "v2-ticket", "Ticket " + a.ticket));
-    if (a.summary || a.big) {
+    if (a.ticket && (a.summary || a.big)) {   // only after a completed call, not for "No call was made"
       const acts = $make("div", "v2-answer-actions");
       const rep = $make("button", "v2-act", "\u{1F501} Repeat"); rep.type = "button";
       const txt = $make("button", "v2-act", "\u{1F4AC} Text me this"); txt.type = "button";
