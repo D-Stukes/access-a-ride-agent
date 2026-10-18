@@ -75,3 +75,5 @@ Each line is a commit you can look up with `git show <hash>`.
 - **Scroll-down arrow no longer overlaps the last request:** the list now ends a little higher, leaving a strip for the arrow — commit "Keep scroll arrow clear of the list".
 
 - **Phone clock shows the real time** (computer clock, e.g. "10:06 PM") instead of a fixed 9:41 — commit "Phone clock uses real time".
+
+- **All times on the phones are live** (from the computer clock): preset answers ("around 10:17 PM"), "Found your … ride" steps, late-ride and complaint-list wording, the sample record, and the older pickup strip — commit "Make remaining demo times live".

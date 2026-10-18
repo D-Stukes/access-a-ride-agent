@@ -1023,6 +1023,11 @@
   @media (max-width: 700px){ .pb-pain-title{font-size:19px} .pb-pain li{font-size:15px;padding-left:18px} }
 </style>
 <link rel="stylesheet" href="assets/v2/ride-assure-v2.css">
+<script>
+/* Live demo clock: times shown in answers come from the computer's clock (offset in minutes), never fixed. */
+window.RAT=function(m){try{return new Date(Date.now()+(m||0)*60000).toLocaleTimeString("en-US",{hour:"numeric",minute:"2-digit"});}catch(e){return "";}};
+window.RAS=function(m){var t=window.RAT(m),x=/^(\d{1,2}):(\d{2})\s*([AP])M$/i.exec(t);return x?x[1]+" "+x[2]+" "+x[3].toUpperCase()+" M":t;};
+</script>
 </head>
 <body>
 <a class="skip" href="#demos">Skip to content</a>
@@ -1419,9 +1424,9 @@
         <div><dt>Rider</dt><dd>Ms. R</dd></div>
         <div><dt>Borough</dt><dd>Queens</dd></div>
         <div><dt>Vendor</dt><dd>Vendor A</dd></div>
-        <div><dt>Scheduled</dt><dd>9:30 AM</dd></div>
-        <div><dt>Arrived</dt><dd>10:15 AM</dd></div>
-        <div><dt>Left</dt><dd>10:17 AM</dd></div>
+        <div><dt>Scheduled</dt><dd>${RAT(-50)}</dd></div>
+        <div><dt>Arrived</dt><dd>${RAT(-5)}</dd></div>
+        <div><dt>Left</dt><dd>${RAT(-3)}</dd></div>
         <div><dt>Called rider</dt><dd>No</dd></div>
         <div><dt>Came to door</dt><dd>No</dd></div>
         <div><dt>Helped board</dt><dd>No</dd></div>
@@ -1503,7 +1508,7 @@
             </button>
           </div>
           <div class="trip-strip">
-            <span><b>Pickup 9:30 AM</b> · Vendor A</span>
+            <span><b>Pickup <span data-live-pickup>9:30 AM</span></b> · Vendor A</span>
             <span class="trip-status">On the way</span>
           </div>
           <div class="settings-sheet" id="settingsSheet" hidden>
@@ -1581,15 +1586,15 @@
     const FLOWS = {
       where: {
         said: "Is my ride here?",
-        steps: ["Found your 9:30 AM ride with Vendor A", "Checking with paratransit dispatch", "Getting the van's location from Vendor A", "Answer received"],
+        get steps(){ return ["Found your " + RAT(8) + " ride with Vendor A", "Checking with paratransit dispatch", "Getting the van's location from Vendor A", "Answer received"]; },
         big: "Your van is about 8 minutes away.",
-        detail: "It should arrive around 9:38 AM. I'll tell you when it's 2 minutes away.",
-        speak: "Your van is about 8 minutes away. It should arrive around 9 38 A M.",
+        get detail(){ return "It should arrive around " + RAT(8) + ". I'll tell you when it's 2 minutes away."; },
+        get speak(){ return "Your van is about 8 minutes away. It should arrive around " + RAS(8) + "."; },
         extra: "notify"
       },
       late: {
         said: "My ride has not arrived.",
-        steps: ["Your pickup was 9:30 AM, it's now 10:05 AM", "Reporting the late van to paratransit dispatch", "Getting an update from Vendor A", "Answer received"],
+        get steps(){ return ["Your pickup was " + RAT(-35) + ", it's now " + RAT(0), "Reporting the late van to paratransit dispatch", "Getting an update from Vendor A", "Answer received"]; },
         big: "Your van is running late. It's about 6 minutes away.",
         detail: "Dispatch knows the van is 35 minutes past your pickup time. Please stay where you are so you aren't marked a no-show.",
         speak: "Your van is running late. It is about 6 minutes away. Dispatch has been told. Please stay where you are.",
@@ -1597,7 +1602,7 @@
       },
       remind: {
         said: "Please remind the driver to call out and assist me.",
-        steps: ["Found your 9:30 AM ride with Vendor A", "Sending your request to paratransit dispatch", "Dispatch passing it to your driver", "Driver confirmed"],
+        get steps(){ return ["Found your " + RAT(8) + " ride with Vendor A", "Sending your request to paratransit dispatch", "Dispatch passing it to your driver", "Driver confirmed"]; },
         big: "Done. Your driver will call you and come to your door.",
         detail: "The driver was asked to call when they arrive and help you to the van.",
         speak: "Done. Your driver will call you when they arrive, and come to your door to help you.",
@@ -1613,7 +1618,7 @@
       },
       wait: {
         said: "I need a few more minutes. Please ask the driver to wait.",
-        steps: ["Found your 9:30 AM ride with Vendor A", "Sending your request to paratransit dispatch", "Dispatch passing it to your driver", "Driver confirmed"],
+        get steps(){ return ["Found your " + RAT(8) + " ride with Vendor A", "Sending your request to paratransit dispatch", "Dispatch passing it to your driver", "Driver confirmed"]; },
         big: "Your driver knows you're on your way.",
         detail: "Dispatch asked the driver to wait for you. Head to the door when you're ready.",
         speak: "Your driver knows you are on your way. Dispatch asked the driver to wait for you.",
@@ -1621,7 +1626,7 @@
       },
       caregiver: {
         said: "Let my caregiver know where my ride is.",
-        steps: ["Found your 9:30 AM ride with Vendor A", "Getting the van's location from Vendor A", "Texting your caregiver", "Message sent"],
+        get steps(){ return ["Found your " + RAT(8) + " ride with Vendor A", "Getting the van's location from Vendor A", "Texting your caregiver", "Message sent"]; },
         big: "Your caregiver has been told your van is about 8 minutes away.",
         detail: "They'll get another message when you're picked up.",
         speak: "Your caregiver has been told your van is about 8 minutes away.",
@@ -1843,7 +1848,7 @@
     const CHOICES = {
       where: {
         label: "Check where my ride is",
-        answer: "Your 9:30 AM ride with Vendor A is about 8 minutes away. It should arrive around 9:38 AM."
+        get answer(){ return "Your " + RAT(8) + " ride with Vendor A is about 8 minutes away. It should arrive around " + RAT(8) + "."; }
       },
       remind: {
         label: "Remind driver to call out and assist",
@@ -1851,7 +1856,7 @@
       },
       late: {
         label: "Note that the driver was late today",
-        answer: "Here's what I'll save: today's 9:30 AM pickup with Vendor A, van arrived at 10:05 AM. That's 35 minutes late. Should I save it?",
+        get answer(){ return "Here's what I'll save: today's " + RAT(-45) + " pickup with Vendor A, van arrived at " + RAT(-10) + ". That's 35 minutes late. Should I save it?"; },
         confirm: true
       }
     };
@@ -2042,7 +2047,7 @@
     // What the agent says first, and the demo answer after the call (simulated)
     const DEMO = {
       // Concept 1 phone
-      where:  { ack: "You asked if your ride is here. I will check on that for you. One moment.", big: "Your van is about 8 minutes away.", say: "Your van is about 8 minutes away. It should arrive around 9:38." },
+      where:  { ack: "You asked if your ride is here. I will check on that for you. One moment.", big: "Your van is about 8 minutes away.", get say(){ return "Your van is about 8 minutes away. It should arrive around " + RAT(8) + "."; } },
       remind: { ack: "You have requested that the driver be reminded to call out and assist you. I will help with that. One moment.", big: "Done. Your driver will call you and come to your door.", say: "Done. Dispatch will remind your driver to call you when they arrive and help you to the van." },
       late:   { ack: "Okay, I'll report it. One moment.", big: "Dispatch has noted that your driver was late today.", say: "Dispatch has noted that your driver was late today. Would you like me to save this to your trip complaint list?", confirm: true },
       // Concept 2 phone
@@ -2380,7 +2385,7 @@
           window.aarSpeak(it.say, true);
           slot.innerHTML = "";
           const c = document.createElement("div"); c.className = "rec-confirm"; c.setAttribute("role", "status");
-          const p = document.createElement("p"); p.textContent = `Save to your trip complaint list: “${it.label}” today, 9:30 AM pickup, Vendor A?`;
+          const p = document.createElement("p"); p.textContent = `Save to your trip complaint list: “${it.label}” today, ${RAT(-45)} pickup, Vendor A?`;
           const row = document.createElement("div"); row.className = "app-row";
           const yes = document.createElement("button"); yes.type = "button"; yes.className = "app-btn solid sm"; yes.textContent = "Yes, save it";
           const no = document.createElement("button"); no.type = "button"; no.className = "app-btn line sm"; no.textContent = "No";

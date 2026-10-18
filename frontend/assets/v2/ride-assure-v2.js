@@ -925,3 +925,9 @@
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", tick); else tick();
   setInterval(tick, 15000);
 })();
+
+/* Older phone's pickup strip: show a live pickup time (about 8 minutes from now), not a fixed 9:30 AM. */
+(function () {
+  function set() { try { document.querySelectorAll("[data-live-pickup]").forEach(function (n) { n.textContent = window.RAT ? window.RAT(8) : n.textContent; }); } catch (e) {} }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", set); else set();
+})();
