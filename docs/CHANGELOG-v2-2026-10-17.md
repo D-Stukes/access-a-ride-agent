@@ -79,3 +79,5 @@ Each line is a commit you can look up with `git show <hash>`.
 - **All times on the phones are live** (from the computer clock): preset answers ("around 10:17 PM"), "Found your … ride" steps, late-ride and complaint-list wording, the sample record, and the older pickup strip — commit "Make remaining demo times live".
 
 - **Track the van (simulated map):** after a call, a "Track the van" button under "While you wait" opens a small street map inside the phone; the van drives to the rider's pin on the same countdown; "Close map" / "Hide the map" closes it — commit "Add Track the van map".
+
+- **Removed the "New in v2" banner** above the phone (and its "Try other riders" link) so the phone sits higher — commit "Remove New in v2 banner".
