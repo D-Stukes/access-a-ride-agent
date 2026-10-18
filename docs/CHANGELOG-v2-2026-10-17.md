@@ -69,3 +69,5 @@ Each line is a commit you can look up with `git show <hash>`.
 - **Removed the "Demo only" note from the phone and centered "What screen am I on?"** between the button row and the list — commit "Hide phone demo note".
 
 - **"What screen am I on?" nudged down** to sit evenly between Music/Game/Mute and the first request — commit "Center What-screen button".
+
+- **"More below" down-arrow** on the home request list: shows while more requests are hidden, tap to scroll, disappears at the bottom — commit "Add scroll-down arrow".

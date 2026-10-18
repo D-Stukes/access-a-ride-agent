@@ -887,3 +887,29 @@
     if (run && run.ui) run.ui.querySelector(".end-call")?.click();
   });
 })();
+
+/* "More below" arrow on the home list: shows while there are more requests to scroll to; tap to scroll down. */
+(function () {
+  function init() {
+    var list = document.getElementById("optList2");
+    if (!list || list.dataset.moreArrow) return;
+    list.dataset.moreArrow = "1";
+    var host = list.parentElement;
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "v2-more";
+    btn.setAttribute("aria-label", "More choices below. Tap to scroll down.");
+    btn.textContent = "▼";
+    host.appendChild(btn);
+    function update() {
+      var more = list.scrollHeight - list.scrollTop - list.clientHeight > 8;
+      btn.hidden = !more;
+    }
+    btn.onclick = function () { list.scrollBy({ top: Math.max(120, list.clientHeight * 0.7), behavior: "smooth" }); };
+    list.addEventListener("scroll", update, { passive: true });
+    window.addEventListener("resize", update);
+    setInterval(update, 800);
+    update();
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
+})();
