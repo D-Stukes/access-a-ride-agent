@@ -67,3 +67,5 @@ Each line is a commit you can look up with `git show <hash>`.
 - **Tighter home screen (more list room):** trimmed spacing on the answer card, Music/Game/Mute row and "What screen am I on?" button so 3 requests show — see the commit "Tighten home-screen spacing".
 
 - **Removed the "Demo only" note from the phone and centered "What screen am I on?"** between the button row and the list — commit "Hide phone demo note".
+
+- **"What screen am I on?" nudged down** to sit evenly between Music/Game/Mute and the first request — commit "Center What-screen button".

@@ -174,3 +174,5 @@
 /* Hide the "Demo only" footer note on the phone; center the "What screen am I on?" button between the button row and the list */
 .phone .sim,#scrHome .sim,.screen1 .sim{display:none}
 .v2-where{margin:7px auto 7px}
+/* shift "What screen am I on?" down ~11px so it sits evenly between the button row and the first request (same total height) */
+.v2-where{margin:18px auto -4px}
