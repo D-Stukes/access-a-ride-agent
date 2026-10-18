@@ -183,3 +183,6 @@
 .v2-more[hidden]{display:none}
 @keyframes v2bob{0%,100%{transform:translate(-50%,0)}50%{transform:translate(-50%,4px)}}
 @media (prefers-reduced-motion:reduce){.v2-more{animation:none}}
+/* keep a small strip under the list for the scroll-down arrow so it never covers a request */
+#optList2{margin-bottom:42px}
+.v2-more{bottom:6px}

@@ -71,3 +71,5 @@ Each line is a commit you can look up with `git show <hash>`.
 - **"What screen am I on?" nudged down** to sit evenly between Music/Game/Mute and the first request — commit "Center What-screen button".
 
 - **"More below" down-arrow** on the home request list: shows while more requests are hidden, tap to scroll, disappears at the bottom — commit "Add scroll-down arrow".
+
+- **Scroll-down arrow no longer overlaps the last request:** the list now ends a little higher, leaving a strip for the arrow — commit "Keep scroll arrow clear of the list".
