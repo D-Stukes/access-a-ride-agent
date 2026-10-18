@@ -63,3 +63,5 @@ Each line is a commit you can look up with `git show <hash>`.
 - Voice "yes" in Chrome is still unreliable; tap Yes as the fallback
 
 - **Shareable summary for Huma (Word):** `docs/Ride-Assure-v2-What-We-Changed.docx` — commit 7a7c3e5.
+
+- **Tighter home screen (more list room):** trimmed spacing on the answer card, Music/Game/Mute row and "What screen am I on?" button so 3 requests show — see the commit "Tighten home-screen spacing".

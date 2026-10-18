@@ -159,3 +159,14 @@
 .v2-vendor-report .ri-good li::marker{color:#0B6B3A}
 .v2-vendor-report .ri-gap li::marker{color:#B54708}
 .trip-status[hidden]{display:none}
+
+/* Oct 17 (late): tighter home screen so the request list shows 3 items */
+.v2-home-quick{margin:0 0 2px}
+.v2-home-quick .v2-tabs{margin:0 0 2px}
+.v2-home-quick .v2-tab,.v2-home-quick .v2-mute{padding:4px 6px;min-height:36px;font-size:14px;border-radius:12px}
+.v2-where{margin:2px auto 0;padding:5px 16px;min-height:34px;font-size:15px}
+.last-answer{padding:6px 10px;margin-bottom:2px}
+.last-answer .la-x{width:26px;height:26px;font-size:16px}
+.last-answer .la-big{margin:2px 0 0;font-size:16px;line-height:1.15}
+.last-answer .la-sub{font-size:12.5px;line-height:1.25}
+.last-answer .app-row{margin-top:4px}
