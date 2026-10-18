@@ -73,3 +73,5 @@ Each line is a commit you can look up with `git show <hash>`.
 - **"More below" down-arrow** on the home request list: shows while more requests are hidden, tap to scroll, disappears at the bottom — commit "Add scroll-down arrow".
 
 - **Scroll-down arrow no longer overlaps the last request:** the list now ends a little higher, leaving a strip for the arrow — commit "Keep scroll arrow clear of the list".
+
+- **Phone clock shows the real time** (computer clock, e.g. "10:06 PM") instead of a fixed 9:41 — commit "Phone clock uses real time".

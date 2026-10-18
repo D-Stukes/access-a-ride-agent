@@ -426,7 +426,7 @@
   .notch{position:relative;height:50px;flex:0 0 50px;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;
     padding:0 26px;background:transparent}
   .notch span{width:118px;height:34px;border-radius:999px;background:#000;grid-column:2}
-  .notch::before{content:"9:41";grid-column:1;grid-row:1;font-family:-apple-system,'SF Pro Text','Space Grotesk',sans-serif;font-weight:700;font-size:16px;color:#0E1726;justify-self:start;padding-left:6px}
+  .notch::before{content:attr(data-time);white-space:nowrap;grid-column:1;grid-row:1;font-family:-apple-system,'SF Pro Text','Space Grotesk',sans-serif;font-weight:700;font-size:16px;color:#0E1726;justify-self:start;padding-left:6px}
   .notch::after{content:"";grid-column:3;grid-row:1;justify-self:end;width:66px;height:13px;
     background:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='66' height='13' viewBox='0 0 66 13'><g fill='%230E1726'><rect x='0' y='8' width='3' height='5' rx='1'/><rect x='5' y='5.5' width='3' height='7.5' rx='1'/><rect x='10' y='3' width='3' height='10' rx='1'/><rect x='15' y='0.5' width='3' height='12.5' rx='1'/><path d='M30 3.2a10 10 0 0 1 12 0l-1.4 1.6a7.8 7.8 0 0 0-9.2 0zM32.6 6.3a5.8 5.8 0 0 1 6.8 0L38 7.9a3.6 3.6 0 0 0-4 0zM36 12.2l-2-2.3a3 3 0 0 1 4 0z'/><rect x='46' y='1' width='17' height='11' rx='3' fill='none' stroke='%230E1726' stroke-width='1.2'/><rect x='48' y='3' width='12' height='7' rx='1.6'/><rect x='64' y='4.5' width='1.6' height='4' rx='.8'/></g></svg>") no-repeat center/contain}
   .screen.bg-sunset .notch::before,.screen.bg-photo .notch::before{color:#fff}
@@ -1090,7 +1090,7 @@
       <p>An AI agent that helps riders and caregivers log what happened on each trip and see which vendors fall short.</p> -->
       <div class="phone welcome-phone" id="welcomePhone">
         <div class="screen bg-sunrise w-screen" id="wScreen" aria-label="Welcome to Ride Assure">
-          <div class="notch" aria-hidden="true"><span></span></div>
+          <div class="notch" aria-hidden="true" data-time=""><span></span></div>
           <div class="w-body">
             <h1 class="w-title"><span class="w-small">Welcome</span><span class="w-small w-to">to</span><span class="w-name">Ride Assure</span></h1>
             <img class="w-logo" src="assets/ride-assure-logo.png" alt="Ride Assure logo: a van with a check mark">
@@ -1492,7 +1492,7 @@
 
     <div class="phone" id="phone2" aria-label="Phone app preview">
       <div class="screen bg-sunrise" id="screen">
-        <div class="notch" aria-hidden="true"><span></span></div>
+        <div class="notch" aria-hidden="true" data-time=""><span></span></div>
 
         <div class="scr" id="scrHome">
           <div class="top-row">
@@ -1789,7 +1789,7 @@
     </div>
     <div class="phone" id="phone1" aria-label="Trip Accountability Agent phone preview">
       <div class="screen bg-sky screen1">
-        <div class="notch" aria-hidden="true"><span></span></div>
+        <div class="notch" aria-hidden="true" data-time=""><span></span></div>
         <div class="agent-panel" id="panel1">
           <p class="hello">Good morning, Ms. R</p>
           <div class="app-bar"><img class="brand-logo sm" src="assets/ride-assure-logo-sm.png" alt="" width="52" height="34"><b>Ride Assure</b></div>

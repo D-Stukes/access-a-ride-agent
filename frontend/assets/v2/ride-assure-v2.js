@@ -913,3 +913,15 @@
   }
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init); else init();
 })();
+
+/* Phone status-bar clock: show the real time from the computer's clock (not a fixed 9:41). */
+(function () {
+  function tick() {
+    var t;
+    try { t = new Date().toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" }); }
+    catch (e) { t = ""; }
+    document.querySelectorAll(".notch").forEach(function (n) { n.setAttribute("data-time", t); });
+  }
+  if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", tick); else tick();
+  setInterval(tick, 15000);
+})();
