@@ -61,3 +61,5 @@ Each line is a commit you can look up with `git show <hash>`.
 - Vendor record info button (`e658ae3`)
 - Music and Mute on the call screen
 - Voice "yes" in Chrome is still unreliable; tap Yes as the fallback
+
+- **Shareable summary for Huma (Word):** `docs/Ride-Assure-v2-What-We-Changed.docx` — commit 7a7c3e5.
