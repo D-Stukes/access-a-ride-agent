@@ -274,7 +274,7 @@
     document.querySelectorAll(".cmd.selected, .choice.selected").forEach((x) => x.classList.remove("selected"));
     btn.classList.add("selected", "speaking"); btn.setAttribute("aria-pressed", "true");
     const phone = btn.closest(".phone");
-    phone.querySelectorAll(".last-answer, .v2-wait-btn").forEach((x) => x.remove());
+    phone.querySelectorAll(".last-answer, .v2-wait-btn, .v2-track-btn").forEach((x) => x.remove()); closeMap(phone);
     const said = btn.innerText.trim().replace(/^["“]+|["”]+$/g, "");
     const me = run = { btn, phone, key, said };
     const alive = () => run === me && !me.dead;
@@ -610,7 +610,7 @@
 
   // The answer card above the options (v1 style), plus the ticket and "While you wait"
   function showAnswer(phone, a, key) {
-    phone.querySelectorAll(".last-answer, .v2-wait-btn").forEach((x) => x.remove());
+    phone.querySelectorAll(".last-answer, .v2-wait-btn, .v2-track-btn").forEach((x) => x.remove()); closeMap(phone);
     const list = phone.querySelector(".opt-list, .choice-list");
     const box = $make("div", "last-answer"); box.setAttribute("role", "status");
     box.innerHTML = '<div class="la-top"><span class="la-tag">Ride Assure · after calling AAR</span><button type="button" class="la-x" aria-label="Dismiss answer">×</button></div>';
@@ -660,9 +660,60 @@
       wb.innerHTML = '<span><b>While you wait</b><small>Play a game or listen to music</small></span><span class="eta"></span>';
       wb.onclick = () => openWait(phone);
       list.parentNode.insertBefore(wb, list);
+      const tb = $make("button", "v2-track-btn", "\u{1F690} Track the van"); tb.type = "button";
+      tb.setAttribute("aria-label", "Track the van on a map (demo)");
+      tb.onclick = () => toggleMap(phone);
+      list.parentNode.insertBefore(tb, list);
       tickWait();
     }
     list.scrollTop = 0;
+  }
+
+  // ------------------------------------------------------------------ Track the van (simulated map)
+  // A small drawn street map inside the phone. The van follows the same countdown as "While you wait".
+  const MAP_ROUTE = "M 30 330 L 30 262 L 112 262 L 112 188 L 196 188 L 196 112 L 262 112 L 262 56";
+  function closeMap(phone) {
+    const m = phone && phone.querySelector(".v2-map"); if (!m) return;
+    clearInterval(m._t); m.remove();
+    phone.querySelectorAll(".v2-track-btn").forEach((b) => { b.textContent = "\u{1F690} Track the van"; });
+  }
+  function toggleMap(phone) {
+    if (phone.querySelector(".v2-map")) { closeMap(phone); return; }
+    openMap(phone);
+  }
+  function openMap(phone) {
+    if (!wait) return;
+    const m = $make("div", "v2-map"); m.setAttribute("role", "dialog"); m.setAttribute("aria-label", "Track the van (demo map)");
+    m.innerHTML =
+      '<div class="v2-wait-top"><h3>Track the van</h3><button type="button" class="v2-x">Close map</button></div>' +
+      '<div class="v2-eta"><span class="num"></span><span class="lbl"><b></b><small>Demo map: the van moves on the same clock as your countdown.</small></span></div>' +
+      '<svg class="v2-map-svg" viewBox="0 0 300 360" role="img" aria-label="Street map with the van driving to your pickup">' +
+        '<rect width="300" height="360" fill="#EAF1E4"/>' +
+        '<g stroke="#fff" stroke-width="16" stroke-linecap="round" fill="none">' +
+          '<path d="M30 20V340M112 20V340M196 20V340M262 20V340"/><path d="M10 56H290M10 112H290M10 188H290M10 262H290M10 330H290"/></g>' +
+        '<g fill="#D6E4CC"><rect x="126" y="70" width="56" height="30" rx="6"/><rect x="40" y="200" width="60" height="50" rx="6"/><rect x="210" y="200" width="40" height="50" rx="6"/></g>' +
+        '<path d="' + MAP_ROUTE + '" fill="none" stroke="#0B6770" stroke-width="5" stroke-dasharray="2 9" stroke-linecap="round"/>' +
+        '<g transform="translate(262 56)"><circle r="13" fill="#B42318" stroke="#fff" stroke-width="3"/><circle r="4.5" fill="#fff"/></g>' +
+        '<text x="262" y="34" text-anchor="middle" font-size="13" font-weight="700" fill="#0E1F45">You</text>' +
+        '<g class="v2-van"><circle r="17" fill="#fff" stroke="#0B6770" stroke-width="3"/><text y="6" text-anchor="middle" font-size="19">\u{1F690}</text></g>' +
+      '</svg>' +
+      '<p class="v2-map-note">Demo map \u00B7 simulated van position</p>';
+    phone.appendChild(m);
+    const path = m.querySelector('path[stroke-dasharray]'), van = m.querySelector(".v2-van");
+    const len = path.getTotalLength();
+    m.querySelector(".v2-x").onclick = () => closeMap(phone);
+    resumeWait();
+    function upd() {
+      if (!wait) { closeMap(phone); return; }
+      const r = remaining(), p = Math.min(1, Math.max(0, 1 - r / wait.etaMin));
+      const pt = path.getPointAtLength(len * p);
+      van.setAttribute("transform", "translate(" + pt.x + " " + pt.y + ")");
+      m.querySelector(".num").textContent = r <= 1 ? "\u2713" : Math.ceil(r);
+      m.querySelector(".lbl b").textContent = r <= 1 ? "Your van is on your block" : "minutes until your van arrives";
+    }
+    upd(); m._t = setInterval(upd, 300);
+    phone.querySelectorAll(".v2-track-btn").forEach((b) => { b.textContent = "\u{1F690} Hide the map"; });
+    m.querySelector(".v2-x").focus();
   }
 
   // ------------------------------------------------------------------ While you wait
@@ -681,6 +732,7 @@
     clearInterval(wait.timer);
     if (wait.audio) { try { wait.audio.pause(); } catch (e) {} }
     if (wait.sheet) wait.sheet.remove();
+    try { closeMap(wait.phone); } catch (e) {}
     wait = null;
   }
   function remaining() {

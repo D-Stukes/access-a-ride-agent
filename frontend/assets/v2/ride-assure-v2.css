@@ -186,3 +186,10 @@
 /* keep a small strip under the list for the scroll-down arrow so it never covers a request */
 #optList2{margin-bottom:42px}
 .v2-more{bottom:6px}
+
+/* Track the van: a button under "While you wait" and a map panel that opens inside the phone */
+.v2-track-btn{display:block;width:100%;flex:0 0 auto;margin:0 0 6px;padding:7px 12px;min-height:38px;border:2px solid #0B6770;border-radius:14px;background:#fff;color:#0B6770;font:inherit;font-weight:800;font-size:15px;cursor:pointer;box-shadow:0 3px 0 #064a51}
+.v2-track-btn:active{transform:translateY(2px);box-shadow:0 1px 0 #064a51}
+.v2-map{position:absolute;inset:14px;border-radius:52px;z-index:7;overflow:hidden;display:flex;flex-direction:column;padding:48px 16px 18px;background:#fff;color:#101828}
+.v2-map-svg{flex:1 1 auto;min-height:0;width:100%;border-radius:16px;border:2px solid #CBD5E1}
+.v2-map-note{margin:6px 0 0;text-align:center;font-size:12px;color:#667085}
