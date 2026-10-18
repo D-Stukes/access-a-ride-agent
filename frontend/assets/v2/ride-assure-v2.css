@@ -170,3 +170,7 @@
 .last-answer .la-big{margin:2px 0 0;font-size:16px;line-height:1.15}
 .last-answer .la-sub{font-size:12.5px;line-height:1.25}
 .last-answer .app-row{margin-top:4px}
+
+/* Hide the "Demo only" footer note on the phone; center the "What screen am I on?" button between the button row and the list */
+.phone .sim,#scrHome .sim,.screen1 .sim{display:none}
+.v2-where{margin:7px auto 7px}

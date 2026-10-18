@@ -65,3 +65,5 @@ Each line is a commit you can look up with `git show <hash>`.
 - **Shareable summary for Huma (Word):** `docs/Ride-Assure-v2-What-We-Changed.docx` — commit 7a7c3e5.
 
 - **Tighter home screen (more list room):** trimmed spacing on the answer card, Music/Game/Mute row and "What screen am I on?" button so 3 requests show — see the commit "Tighten home-screen spacing".
+
+- **Removed the "Demo only" note from the phone and centered "What screen am I on?"** between the button row and the list — commit "Hide phone demo note".
